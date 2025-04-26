@@ -5,18 +5,39 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * User entity class representing users in the recipe sharing platform
+ * 
+ * CRUD Operations:
+ * - Create: Register new users with username, email, password
+ * - Read: Retrieve user details by ID or username
+ * - Update: Modify user account information
+ * - Delete: Remove user accounts from the system
+ */
 @Entity
 @Table(name = "users")
 public class User {
 
+    /**
+     * Unique identifier for the user
+     * @crud.attribute primary key, auto-generated
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Username for login and identification
+     * @crud.attribute required, unique, searchable
+     */
     @NotBlank(message = "Username is required")
     @Column(unique = true)
     private String username;
 
+    /**
+     * Email address of the user
+     * @crud.attribute required, unique, validated
+     */
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     @Column(unique = true)

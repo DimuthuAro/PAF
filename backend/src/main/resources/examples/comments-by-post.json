@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "postId": 5,
+    "eventId": null,
+    "content": "This recipe was absolutely delicious! I made it last night and my family loved it.",
+    "createdAt": "2025-04-25T18:30:00Z"
+  },
+  {
+    "id": 2,
+    "userId": 2,
+    "postId": 5,
+    "eventId": null,
+    "content": "I added some extra spices and it turned out amazing!",
+    "createdAt": "2025-04-25T19:45:12Z"
+  },
+  {
+    "id": 3,
+    "userId": 3,
+    "postId": 5,
+    "eventId": null,
+    "content": "How long did you cook it for? Mine didn't turn out as tender.",
+    "createdAt": "2025-04-26T08:15:30Z"
+  }
+]

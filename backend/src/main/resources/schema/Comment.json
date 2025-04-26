@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Comment",
+  "description": "Comment entity representing user comments on posts and recipes",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Unique identifier for the comment",
+      "readOnly": true,
+      "crud": {
+        "attribute": "primary key, auto-generated"
+      }
+    },
+    "userId": {
+      "type": "integer",
+      "description": "ID of the user who created this comment",
+      "crud": {
+        "attribute": "required, references user entity"
+      }
+    },
+    "postId": {
+      "type": ["integer", "null"],
+      "description": "ID of the post this comment belongs to (can be null if comment is on an event)",
+      "crud": {
+        "attribute": "optional, references post entity"
+      }
+    },
+    "eventId": {
+      "type": ["integer", "null"],
+      "description": "ID of the event this comment belongs to (can be null if comment is on a post)",
+      "crud": {
+        "attribute": "optional, references event entity"
+      }
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Content of the comment",
+      "crud": {
+        "attribute": "required, min length: 1"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time when the comment was created",
+      "readOnly": true,
+      "crud": {
+        "attribute": "auto-generated, sortable"
+      }
+    }
+  },
+  "required": ["userId", "content"],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": 1,
+      "userId": 42,
+      "postId": 123,
+      "eventId": null,
+      "content": "This recipe looks amazing! I'll definitely try it this weekend.",
+      "createdAt": "2025-04-26T14:30:00Z"
+    },
+    {
+      "id": 2,
+      "userId": 56,
+      "postId": null,
+      "eventId": 78,
+      "content": "Is this event suitable for beginners?",
+      "createdAt": "2025-04-26T15:45:22Z"
+    }
+  ]
+}
