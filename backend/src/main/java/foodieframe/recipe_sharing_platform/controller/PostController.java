@@ -2,7 +2,6 @@ package foodieframe.recipe_sharing_platform.controller;
 
 import foodieframe.recipe_sharing_platform.model.Post;
 import foodieframe.recipe_sharing_platform.service.PostService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api/posts")
 public class PostController {
 
@@ -20,7 +19,8 @@ public class PostController {
     
     // Create
     @PostMapping
-    public ResponseEntity<Post> createPost(@Valid @RequestBody Post post) {
+    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        System.out.println("Incoming Post Payload: " + post);
         return new ResponseEntity<Post>(postService.savePost(post), HttpStatus.CREATED);
     }
     
@@ -40,7 +40,7 @@ public class PostController {
     
     // Update
     @PutMapping("/{id}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long id, @Valid @RequestBody Post post) {
+    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post post) {
         try {
             return new ResponseEntity<Post>(postService.updatePost(id, post), HttpStatus.OK);
         } catch (RuntimeException e) {

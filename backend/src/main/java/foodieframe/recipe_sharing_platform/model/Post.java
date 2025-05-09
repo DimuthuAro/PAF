@@ -59,8 +59,17 @@ public class Post {
      * @crud.attribute optional
      */
     private String image;
-      /**
+
+    /**
+     * URL or path to recipe video
+     * 
+     * @crud.attribute optional
+     */
+    private String video;
+
+    /**
      * Step-by-step instructions for the recipe
+     * 
      * @crud.attribute required
      */
     @NotBlank(message = "Steps are required")
@@ -119,6 +128,14 @@ public class Post {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getVideo() {
+        return video;
+    }
+
+    public void setVideo(String video) {
+        this.video = video;
     }
 
     public String getSteps() {

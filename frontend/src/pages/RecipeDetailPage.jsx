@@ -20,11 +20,16 @@ const RecipeDetailPage = () => {
     const fetchRecipe = async () => {
       try {
         const response = await recipeService.getRecipeById(id);
+        console.log("Recipe fetched successfully:", response.data);
         setRecipe(response.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching recipe:', error);
-        setError('Failed to load recipe. Please try again later.');
+        if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+          setError('Failed to load recipe due to a network or CORS issue. Please try again later.');
+        } else {
+          setError('Failed to load recipe. Please try again later.');
+        }
         setLoading(false);
       }
     };
@@ -35,6 +40,9 @@ const RecipeDetailPage = () => {
         setLikeCount(response.data);
       } catch (error) {
         console.error('Error fetching like count:', error);
+        if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+          alert('Failed to fetch like count due to a network or CORS issue.');
+        }
       }
     };
 
@@ -56,6 +64,9 @@ const RecipeDetailPage = () => {
           setIsFavorite(favoriteResponse.data);
         } catch (error) {
           console.error('Error checking user interactions:', error);
+          if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+            alert('Failed to check user interactions due to a network or CORS issue.');
+          }
         }
       }
     };
@@ -73,10 +84,14 @@ const RecipeDetailPage = () => {
         // Implement unlike functionality
         setIsLiked(false);
         setLikeCount(prev => prev - 1);
+        console.log("Like removed");
       } else {
+        console.log("Attempting to like recipe with ID:", id);
+        console.log("Current user ID:", currentUser.user.id);
         await interactionService.createLike(currentUser.user.id, id);
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
+        console.log("Like added");
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -100,7 +115,9 @@ const RecipeDetailPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!currentUser || (recipe && recipe.userID !== currentUser.user.id)) return;
+    const recipeUserId = recipe.userID || recipe.userId;
+    const currentUserId = currentUser?.user?.id;
+    if (!currentUser || (recipe && recipeUserId !== currentUserId)) return;
 
     if (window.confirm('Are you sure you want to delete this recipe?')) {
       try {
@@ -130,13 +147,16 @@ const RecipeDetailPage = () => {
         </Link>
       </div>
     );
-  }
+  } console.log("Recipe object being rendered:", recipe);
 
-  // Parse the Steps field into steps array
-  const steps = recipe.Steps ? recipe.Steps.split(/\d+\./).filter(Boolean).map(step => step.trim()) : [];
+  // Parse the steps field into steps array (handling both uppercase and lowercase field names)
+  const stepsContent = recipe.steps || recipe.Steps || '';
+  console.log("Steps content:", stepsContent);
+  const steps = stepsContent ? stepsContent.split(/\d+\./).filter(Boolean).map(step => step.trim()) : [];
   
-  // Parse the Tags field into tags array
-  const tags = recipe.Tags ? recipe.Tags.split(',').map(tag => tag.trim()) : [];
+  // Parse the tags field into tags array (handling both uppercase and lowercase field names)  
+  const tagsContent = recipe.tags || recipe.Tags || '';
+  const tags = tagsContent ? tagsContent.split(',').map(tag => tag.trim()) : [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -144,11 +164,11 @@ const RecipeDetailPage = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="px-6 py-8">
             <div className="flex justify-between items-start">
-              <div>
+              <div>                
                 <div className="flex items-center mb-2">
-                  <h1 className="text-3xl font-bold text-gray-900 mr-3">{recipe.Title}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 mr-3">{recipe.title || recipe.Title || "Untitled Recipe"}</h1>
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {recipe.Category}
+                    {recipe.category || recipe.Category || "Uncategorized"}
                   </span>
                 </div>
                 <p className="text-gray-500">Recipe #{recipe.id}</p>
@@ -180,11 +200,11 @@ const RecipeDetailPage = () => {
               </div>
             </div>
 
-            {recipe.Image && (
+            {(recipe.image || recipe.Image) && (
               <div className="mt-6">
                 <img 
-                  src={recipe.Image} 
-                  alt={recipe.Title} 
+                  src={recipe.image || recipe.Image}
+                  alt={recipe.title || recipe.Title || "Recipe Image"} 
                   className="w-full h-64 object-cover rounded-lg"
                 />
               </div>
@@ -192,7 +212,7 @@ const RecipeDetailPage = () => {
 
             <div className="mt-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Description</h2>
-              <p className="text-gray-700">{recipe.Description}</p>
+              <p className="text-gray-700">{recipe.description || recipe.Description || "No description available."}</p>
             </div>
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -223,7 +243,7 @@ const RecipeDetailPage = () => {
               </div>
             </div>
 
-            {currentUser && currentUser.user.id === recipe.userID && (
+            {currentUser && (recipe.userID === currentUser.user.id || recipe.userId === currentUser.user.id) && (
               <div className="mt-8 flex justify-end space-x-4">
                 <Link
                   to={`/edit-recipe/${id}`}

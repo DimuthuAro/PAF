@@ -14,6 +14,7 @@ const RecipeForm = ({ recipe, isEditing = false }) => {
     steps: '',
     image: '',
     tags: '',
+    video: '',
     userID: currentUser ? currentUser.user.id : null
   });
 
@@ -21,6 +22,10 @@ const RecipeForm = ({ recipe, isEditing = false }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      userID: currentUser ? currentUser.user.id : null
+    }));
     if (isEditing && recipe) {
       setFormData({
         title: recipe.title || '',
@@ -29,6 +34,7 @@ const RecipeForm = ({ recipe, isEditing = false }) => {
         steps: recipe.steps || '',
         image: recipe.image || '',
         tags: recipe.tags || '',
+        video: recipe.video || '',
         userID: recipe.userID || (currentUser ? currentUser.user.id : null)
       });
     }
@@ -221,6 +227,22 @@ const RecipeForm = ({ recipe, isEditing = false }) => {
           placeholder="e.g. healthy, quick, vegetarian"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
+      </div>
+
+      <div>
+        <label htmlFor="video" className="block text-sm font-medium text-gray-700">
+          Video (optional)
+        </label>
+        <input
+          type="text"
+          id="video"
+          name="video"
+          value={formData.video || ''}
+          onChange={handleChange}
+          className={`mt-1 block w-full rounded-md shadow-sm ${errors.video ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
+            }`}
+        />
+        {errors.video && <p className="mt-1 text-sm text-red-600">{errors.video}</p>}
       </div>
 
       <div className="flex justify-end space-x-3">

@@ -3,7 +3,6 @@ package foodieframe.recipe_sharing_platform.controller;
 import foodieframe.recipe_sharing_platform.model.AuthResponse;
 import foodieframe.recipe_sharing_platform.model.User;
 import foodieframe.recipe_sharing_platform.service.UserService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RequestMapping("/api")
 public class UserController {
 
@@ -23,7 +22,7 @@ public class UserController {
     
     // Create
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<User> createUser(@RequestBody User user) {
         return new ResponseEntity<User>(userService.saveUser(user), HttpStatus.CREATED);
     }
     
@@ -43,7 +42,7 @@ public class UserController {
     
     // Update
     @PutMapping("/users/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         try {
             return new ResponseEntity<User>(userService.updateUser(id, user), HttpStatus.OK);
         } catch (RuntimeException e) {
@@ -64,7 +63,7 @@ public class UserController {
 
     // Register
     @PostMapping("/users/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
         return new ResponseEntity<User>(userService.registerUser(user), HttpStatus.CREATED);
     }
 
@@ -99,7 +98,7 @@ public class UserController {
 
     // New direct registration endpoint to match frontend request
     @PostMapping("/register")
-    public ResponseEntity<?> registerNewUser(@Valid @RequestBody User user) {
+    public ResponseEntity<?> registerNewUser(@RequestBody User user) {
         try {
             User registeredUser = userService.registerUser(user);
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);

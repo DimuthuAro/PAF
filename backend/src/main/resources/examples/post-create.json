@@ -1,0 +1,10 @@
+{
+    "userID": 1,
+    "title": "Delicious Pasta Recipe",
+    "description": "A step-by-step guide to making delicious pasta from scratch.",
+    "category": "Italian",
+    "image": "https://example.com/images/pasta.jpg",
+    "video": "https://example.com/videos/pasta.mp4",
+    "steps": "1. Boil water. 2. Add pasta. 3. Cook for 10 minutes. 4. Drain and serve.",
+    "tags": "pasta, italian, easy"
+}

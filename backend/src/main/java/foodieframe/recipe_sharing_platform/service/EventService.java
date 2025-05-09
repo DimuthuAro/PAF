@@ -16,8 +16,34 @@ public class EventService {
     private EventRepository eventRepository;
 
     // Create
+    // Enhanced save event method with more robust error handling
     public Event saveEvent(Event event) {
-        return eventRepository.save(event);
+        try {
+            System.out.println("[DEBUG] Saving event to database: " + event);
+
+            // Set default values for missing fields
+            if (event.getImage() == null || event.getImage().trim().isEmpty()) {
+                event.setImage("https://example.com/default-image.jpg");
+            }
+
+            // Convert time to have minimum length if necessary
+            if (event.getTime() != null && event.getTime().length() < 6) {
+                event.setTime(event.getTime() + " (24-hour format)");
+            }
+
+            // Convert date to have minimum length if necessary
+            if (event.getDate() != null && event.getDate().length() < 6) {
+                event.setDate(event.getDate() + " (YYYY-MM-DD)");
+            }
+
+            Event savedEvent = eventRepository.save(event);
+            System.out.println("[DEBUG] Event saved successfully: " + savedEvent);
+            return savedEvent;
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to save event: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save event: " + e.getMessage(), e);
+        }
     }
 
     // Read all

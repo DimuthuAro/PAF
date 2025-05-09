@@ -5,13 +5,14 @@ import { useAuth } from '../context/AuthContext';
 
 const CreateEventPage = () => {
   const { currentUser, loading } = useAuth();
-  const navigate = useNavigate();
-  const [newEvent, setNewEvent] = useState({
+  const navigate = useNavigate(); const [newEvent, setNewEvent] = useState({
+    userId: currentUser ? currentUser.user.id : null,
     title: '',
     description: '',
-    date: '',
+    date: new Date().toISOString().split('T')[0], // Set default date to today
+    time: '12:00',
     location: '',
-    image: ''
+    image: 'https://example.com/default-image.jpg' // Set default image URL
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -36,16 +37,54 @@ const CreateEventPage = () => {
     setError(null);
 
     try {
+      // Form validation
+      if (newEvent.title.length < 6) {
+        setError("Title must be at least 6 characters long");
+        setSubmitting(false);
+        return;
+      }
+
+      if (newEvent.description.length < 6) {
+        setError("Description must be at least 6 characters long");
+        setSubmitting(false);
+        return;
+      }
+
+      if (newEvent.location.length < 6) {
+        setError("Location must be at least 6 characters long");
+        setSubmitting(false);
+        return;
+      }
+
+      // Ensure time has minimum length of 6 characters
+      let timeValue = newEvent.time;
+      if (timeValue.length < 6) {
+        timeValue = timeValue + " (24-hour format)";
+      }
+
+      // Ensure date has minimum length of 6 characters
+      let dateValue = newEvent.date;
+      if (dateValue.length < 6) {
+        const date = new Date(dateValue);
+        dateValue = date.toDateString(); // Format: Wed Jan 01 2025
+      }
+
       const eventData = {
         ...newEvent,
-        userId: currentUser.id
+        time: timeValue,
+        date: dateValue,
+        userId: currentUser.user.id
       };
       
+      console.log("Sending event data to backend:", eventData);
+
       const response = await eventService.createEvent(eventData);
+      console.log("Event created successfully:", response);
+
       navigate(`/events/${response.data.id}`);
     } catch (error) {
       console.error("Error creating event:", error);
-      setError("Failed to create event. Please try again.");
+      setError(error.message || "Failed to create event. Please try again.");
       setSubmitting(false);
     }
   };
@@ -107,7 +146,22 @@ const CreateEventPage = () => {
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
-                  
+
+                  <div>
+                    <label htmlFor="time" className="block text-sm font-medium text-gray-700">
+                      Event Time
+                    </label>
+                    <input
+                      type="time"
+                      id="time"
+                      name="time"
+                      value={newEvent.time}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
                   <div>
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700">
                       Event Location
@@ -125,7 +179,7 @@ const CreateEventPage = () => {
                   
                   <div>
                     <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                      Event Image URL (optional)
+                      Image URL
                     </label>
                     <input
                       type="url"
@@ -133,6 +187,7 @@ const CreateEventPage = () => {
                       name="image"
                       value={newEvent.image}
                       onChange={handleInputChange}
+                      required
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       placeholder="https://example.com/image.jpg"
                     />

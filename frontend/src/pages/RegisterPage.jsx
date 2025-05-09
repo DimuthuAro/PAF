@@ -63,16 +63,30 @@ const RegisterPage = () => {
     try {
       console.log('Form data:', formData);
       const response = await userService.registerUser(formData);
-      console.log('Registration successful:', response);
-      
-      if (register) {
-        await register(formData);
+      console.log('Response from server:', response);
+      if (response.status === 201) {
+        console.log('Registration successful:', response);
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+        return;
       }
+
+      // Handle unexpected success responses
+      if (response.data && response.data.id) {
+        console.log('Registration successful but unexpected response:', response);
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
+        return;
+      }
+
+      console.log('Registration successful:', response);
       
       navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
     } catch (err) {
       console.error('Registration error:', err);
-      setError(getErrorMessage(err));
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError(getErrorMessage(err));
+      }
       
       if (err.message === 'Network Error') {
         setServerStatus('Backend server appears to be offline. Contact support if this persists.');

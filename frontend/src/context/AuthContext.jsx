@@ -6,20 +6,19 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [storedUser, setStoredUser] = useState(null);
   useEffect(() => {
     // Check for user in localStorage
-    const storedUser = localStorage.getItem('user');
+    setStoredUser(localStorage.getItem('user'));
     if (storedUser) {
       try {
         setCurrentUser(JSON.parse(storedUser));
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('user');
       }
     }
     setLoading(false);
-  }, []);
+  }, [storedUser]);
 
   const login = async (userData) => {
     // Update the user state with the data from the login response

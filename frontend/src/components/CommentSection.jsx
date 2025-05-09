@@ -12,26 +12,33 @@ const CommentSection = ({ recipeId }) => {
   useEffect(() => {
     fetchComments();
   }, [recipeId]);
-
   const fetchComments = async () => {
     try {
       const response = await interactionService.getRecipeComments(recipeId);
       setComments(response.data);
     } catch (error) {
       console.error('Error fetching comments:', error);
+      if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+        console.warn('Failed to fetch comments due to a network or CORS issue. Please try again later.');
+      }
     }
   };
-
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim() || !currentUser) return;
 
     try {
-      await interactionService.createComment(currentUser.id, recipeId, newComment);
+      // Use currentUser.user.id instead of currentUser.id
+      await interactionService.createComment(currentUser.user.id, recipeId, newComment);
       setNewComment('');
       fetchComments(); // Refresh comments
     } catch (error) {
       console.error('Error adding comment:', error);
+      if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+        alert('Failed to add comment due to a network or CORS issue. Please try again later.');
+      } else {
+        alert('Failed to add comment. Please try again.');
+      }
     }
   };
 

@@ -11,30 +11,42 @@ const RecipesPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await recipeService.getAllRecipes();
-        setRecipes(response.data);
-        setLoading(false);
+        setRecipes(response.data || []);
       } catch (error) {
         console.error('Error fetching recipes:', error);
-        setError('Failed to load recipes. Please try again later.');
+        setError(error.message || 'Failed to load recipes. Please try again later.');
+        // Retry up to 3 times with exponential backoff
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, Math.pow(2, retryCount) * 1000);
+        }
+      } finally {
         setLoading(false);
       }
     };
 
     fetchRecipes();
-  }, []);
+  }, [retryCount]);
 
   const filteredRecipes = recipes.filter((recipe) => {
-    const matchesSearch = recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        recipe.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDifficulty = difficultyFilter ? recipe.difficulty === difficultyFilter : true;
-    
+    const matchesSearch = recipe.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDifficulty = !difficultyFilter || recipe.difficulty === difficultyFilter;
     return matchesSearch && matchesDifficulty;
   });
+
+  const handleRetry = () => {
+    setRetryCount(0); // Reset retry count to trigger a new fetch
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -97,7 +109,15 @@ const RecipesPage = () => {
               <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : error ? (
-            <div className="text-center text-red-600 py-8">{error}</div>
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">{error}</div>
+                <button
+                  onClick={handleRetry}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Try Again
+                </button>
+              </div>
           ) : (
             <>
               {filteredRecipes.length > 0 ? (
@@ -134,4 +154,4 @@ const RecipesPage = () => {
   );
 };
 
-export default RecipesPage; 
+export default RecipesPage;

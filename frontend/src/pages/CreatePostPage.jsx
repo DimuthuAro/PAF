@@ -8,13 +8,24 @@ const CreatePostPage = () => {
   const navigate = useNavigate();
   const [newPost, setNewPost] = useState({
     title: '',
-    content: '',
-    image: ''
+    description: '',
+    category: '',
+    steps: '',
+    image: '',
+    video: '',
+    tags: '',
+    userID: currentUser.user.id ? currentUser.user.id : null
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("Current User in CreatePostPage:", currentUser.user.id);
+    setNewPost
+      (prev => ({
+        ...prev,
+        userID: currentUser.user.id ? currentUser.user.id : null
+      }));
     if (!loading && !currentUser) {
       navigate('/login', { state: { from: '/create-post', message: 'Please login to create a post' } });
     }
@@ -22,16 +33,23 @@ const CreatePostPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewPost({
-      ...newPost,
+    setNewPost((prev) => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+
+    // Added validation for description length in handleSubmit
+    if (newPost.description.length < 10) {
+      setError("Description must be at least 10 characters long.");
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const postData = {
@@ -40,6 +58,8 @@ const CreatePostPage = () => {
         createdAt: new Date().toISOString()
       };
       
+      console.log("Post Data Sent to Backend:", postData);
+
       const response = await postService.createPost(postData);
       navigate('/'); // Navigate back to homepage after creating post
     } catch (error) {
@@ -94,18 +114,50 @@ const CreatePostPage = () => {
                   </div>
                   
                   <div>
-                    <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-                      Post Content
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      id="category"
+                      name="category"
+                      value={newPost.category}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="e.g., Italian, Asian, Dessert"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                      Description
                     </label>
                     <textarea
-                      id="content"
-                      name="content"
-                      value={newPost.content}
+                      id="description"
+                      name="description"
+                      value={newPost.description}
                       onChange={handleInputChange}
                       rows={6}
                       required
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Write your post content here..."
+                      placeholder="Write your post description here..."
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="steps" className="block text-sm font-medium text-gray-700">
+                      Steps
+                    </label>
+                    <textarea
+                      id="steps"
+                      name="steps"
+                      value={newPost.steps}
+                      onChange={handleInputChange}
+                      rows={6}
+                      required
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Write the steps for your post here..."
                     />
                   </div>
                   
@@ -121,6 +173,36 @@ const CreatePostPage = () => {
                       onChange={handleInputChange}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="video" className="block text-sm font-medium text-gray-700">
+                      Video URL (optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="video"
+                      name="video"
+                      value={newPost.video}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="https://example.com/video.mp4"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="tags" className="block text-sm font-medium text-gray-700">
+                      Tags (optional, comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      id="tags"
+                      name="tags"
+                      value={newPost.tags}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="e.g., healthy, quick, vegetarian"
                     />
                   </div>
                   

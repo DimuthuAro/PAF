@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { interactionService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const RecipeCard = ({ recipe }) => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -16,66 +17,88 @@ const RecipeCard = ({ recipe }) => {
         setLikeCount(response.data);
       } catch (error) {
         console.error('Error fetching like count:', error);
+        if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+          console.warn('Failed to fetch like count due to a network or CORS issue.');
+        }
       }
     };
 
     const checkUserInteractions = async () => {
-      if (currentUser) {
+    if (currentUser?.user?.id && recipe?.id) {
         try {
-          const likeResponse = await interactionService.checkUserInteraction(
-            currentUser.id,
-            recipe.id,
-            'LIKE'
-          );
-          setIsLiked(likeResponse.data);
+          const [likeResponse, favoriteResponse] = await Promise.all([
+            interactionService.checkUserInteraction(
+              currentUser.user.id,
+              recipe.id,
+              'LIKE'
+            ),
+            interactionService.checkUserInteraction(
+              currentUser.user.id,
+              recipe.id,
+              'FAVORITE'
+            )
+          ]);
 
-          const favoriteResponse = await interactionService.checkUserInteraction(
-            currentUser.id,
-            recipe.id,
-            'FAVORITE'
-          );
+          setIsLiked(likeResponse.data);
           setIsFavorite(favoriteResponse.data);
         } catch (error) {
           console.error('Error checking user interactions:', error);
+          if (error.message.includes('CORS') || error.message.includes('Network Error')) {
+            console.warn('Failed to check user interactions due to a network or CORS issue.');
+          }
+          // Reset interaction states on error
+          setIsLiked(false);
+          setIsFavorite(false);
         }
       }
     };
 
     fetchLikeCount();
-    checkUserInteractions();
+    if (currentUser) {
+      checkUserInteractions();
+    }
   }, [recipe.id, currentUser]);
 
   const handleLike = async () => {
-    if (!currentUser) return;
+    if (!currentUser?.user?.id) {
+      navigate('/login', { state: { from: window.location.pathname } });
+      return;
+    }
 
     try {
       if (isLiked) {
-        // Implement unlike functionality if available
+        await interactionService.deleteTypeInteractions(recipe.id, 'LIKE');
         setIsLiked(false);
-        setLikeCount(prev => prev - 1);
+        setLikeCount(prev => Math.max(0, prev - 1));
       } else {
-        await interactionService.createLike(currentUser.id, recipe.id);
+        await interactionService.createLike(currentUser.user.id, recipe.id);
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Show error feedback to user
+      alert('Failed to update like. Please try again.');
     }
   };
 
   const handleFavorite = async () => {
-    if (!currentUser) return;
+    if (!currentUser?.user?.id) {
+      navigate('/login', { state: { from: window.location.pathname } });
+      return;
+    }
 
     try {
       if (!isFavorite) {
-        await interactionService.createFavorite(currentUser.id, recipe.id);
+        await interactionService.createFavorite(currentUser.user.id, recipe.id);
         setIsFavorite(true);
       } else {
-        // Implement unfavorite functionality if available
+        await interactionService.deleteTypeInteractions(recipe.id, 'FAVORITE');
         setIsFavorite(false);
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      alert('Failed to update favorite status. Please try again.');
     }
   };
 
@@ -139,4 +162,4 @@ const RecipeCard = ({ recipe }) => {
   );
 };
 
-export default RecipeCard; 
+export default RecipeCard;

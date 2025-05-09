@@ -1,13 +1,14 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api';
+const API_URL = 'http://localhost:8082/api';
 
-// Create axios instance
+// Configure axios instance with default config
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true // Set this to true to include credentials for CORS requests
 });
 
 // Authentication services
@@ -40,10 +41,28 @@ export const authService = {
   }
 };
 
-// Recipe services - now mapped to post endpoints
+// Recipe services - now mapped to post endpoints with enhanced error handling
 export const recipeService = {
-  getAllRecipes: () => axiosInstance.get('/posts'),
-  getRecipeById: (id) => axiosInstance.get(`/posts/${id}`),
+  getAllRecipes: async () => {
+    try {
+      const response = await axiosInstance.get('/posts');
+      return response;
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
+      throw error;
+    }
+  },
+  getRecipeById: async (id) => {
+    try {
+      console.log(`Fetching recipe with ID: ${id}`);
+      const response = await axiosInstance.get(`/posts/${id}`);
+      console.log('Recipe data received:', response.data);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching recipe with ID ${id}:`, error);
+      throw error;
+    }
+  },
   createRecipe: (recipe) => axiosInstance.post('/posts', recipe),
   updateRecipe: (id, recipe) => axiosInstance.put(`/posts/${id}`, recipe),
   deleteRecipe: (id) => axiosInstance.delete(`/posts/${id}`),
@@ -56,11 +75,12 @@ axiosInstance.interceptors.response.use(
   error => {
     console.error('API Error:', error.response || error);
 
-    // Handle authentication errors
-    if (error.response && error.response.status === 401) {
-      // Unauthorized - could redirect to login or clear token
-      authService.logout();
-      return Promise.reject(new Error('Authentication failed. Please log in again.'));
+    // Handle 401 Unauthorized globally
+    if (error.response?.status === 401) {
+      authService.logout(); // Clear user data
+      // Redirect to login preserving the current location
+      window.location.href = `/login?redirect=${window.location.pathname}`;
+      return Promise.reject(new Error('Please log in to continue.'));
     }
 
     // Handle specific database constraint violations
@@ -73,7 +93,9 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    // Get detailed error message from response if available
+    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
@@ -105,14 +127,71 @@ export const userService = {
   },
 };
 
-// Event services
+// Enhanced Event services with better error handling
 export const eventService = {
-  getAllEvents: () => axiosInstance.get('/events'),
-  getEventById: (id) => axiosInstance.get(`/events/${id}`),
-  createEvent: (event) => axiosInstance.post('/events', event),
-  updateEvent: (id, event) => axiosInstance.put(`/events/${id}`, event),
-  deleteEvent: (id) => axiosInstance.delete(`/events/${id}`),
-  getUserEvents: (userId) => axiosInstance.get(`/events/user/${userId}`),
+  getAllEvents: async () => {
+    try {
+      const response = await axiosInstance.get('/events');
+      return response;
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      throw error?.response?.data || error.message || 'Failed to fetch events';
+    }
+  },
+
+  getEventById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/events/${id}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching event with ID ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch event';
+    }
+  },
+
+  createEvent: async (event) => {
+    try {
+      console.log("Sending event data to backend:", event);
+      const response = await axiosInstance.post('/events', event);
+      console.log("Event created successfully:", response.data);
+      return response;
+    } catch (error) {
+      console.error("Error creating event:", error);
+      console.error("Response data:", error?.response?.data);
+      throw error?.response?.data || error.message || 'Failed to create event';
+    }
+  },
+
+  updateEvent: async (id, event) => {
+    try {
+      console.log(`Updating event with ID ${id}:`, event);
+      const response = await axiosInstance.put(`/events/${id}`, event);
+      return response;
+    } catch (error) {
+      console.error(`Error updating event with ID ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to update event';
+    }
+  },
+
+  deleteEvent: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/events/${id}`);
+      return response;
+    } catch (error) {
+      console.error(`Error deleting event with ID ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to delete event';
+    }
+  },
+
+  getUserEvents: async (userId) => {
+    try {
+      const response = await axiosInstance.get(`/events/user/${userId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching events for user ID ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch user events';
+    }
+  },
 };
 
 // Interaction services
@@ -146,5 +225,348 @@ const user = authService.getCurrentUser();
 if (user && user.token) {
   axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
 }
+
+// Saved Recipes service
+export const savedRecipeService = {
+  // Save a recipe to user's collection
+  saveRecipe: async (userId, recipeId, note = null) => {
+    try {
+      const payload = note ? { note } : {};
+      const response = await axiosInstance.post(`/saved-recipes/users/${userId}/recipes/${recipeId}`, payload);
+      return response;
+    } catch (error) {
+      console.error(`Error saving recipe ${recipeId} for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to save recipe';
+    }
+  },
+
+  // Get all saved recipes for a user
+  getUserSavedRecipes: async (userId) => {
+    try {
+      const response = await axiosInstance.get(`/saved-recipes/users/${userId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching saved recipes for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch saved recipes';
+    }
+  },
+
+  // Check if a recipe is saved
+  isRecipeSaved: async (userId, recipeId) => {
+    try {
+      const response = await axiosInstance.get(`/saved-recipes/users/${userId}/recipes/${recipeId}/check`);
+      return response.data.saved;
+    } catch (error) {
+      console.error(`Error checking if recipe ${recipeId} is saved by user ${userId}:`, error);
+      return false; // Default to false on error
+    }
+  },
+
+  // Get a specific saved recipe
+  getSavedRecipe: async (userId, recipeId) => {
+    try {
+      const response = await axiosInstance.get(`/saved-recipes/users/${userId}/recipes/${recipeId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching saved recipe ${recipeId} for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch saved recipe';
+    }
+  },
+
+  // Update note for a saved recipe
+  updateNote: async (userId, recipeId, note) => {
+    try {
+      const response = await axiosInstance.put(`/saved-recipes/users/${userId}/recipes/${recipeId}`, { note });
+      return response;
+    } catch (error) {
+      console.error(`Error updating note for recipe ${recipeId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to update note';
+    }
+  },
+
+  // Remove a saved recipe
+  removeSavedRecipe: async (userId, recipeId) => {
+    try {
+      const response = await axiosInstance.delete(`/saved-recipes/users/${userId}/recipes/${recipeId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error removing saved recipe ${recipeId} for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to remove saved recipe';
+    }
+  },
+
+  // Count saves for a recipe
+  getRecipeSaveCount: async (recipeId) => {
+    try {
+      const response = await axiosInstance.get(`/saved-recipes/recipes/${recipeId}/count`);
+      return response.data.count;
+    } catch (error) {
+      console.error(`Error counting saves for recipe ${recipeId}:`, error);
+      return 0; // Default to 0 on error
+    }
+  }
+};
+
+// Friends service
+export const friendService = {
+  // Send a friend request
+  sendFriendRequest: async (userId, friendId) => {
+    try {
+      const response = await axiosInstance.post('/friends/request', { userId, friendId });
+      return response;
+    } catch (error) {
+      console.error(`Error sending friend request from ${userId} to ${friendId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to send friend request';
+    }
+  },
+
+  // Accept a friend request
+  acceptFriendRequest: async (userId, friendId) => {
+    try {
+      const response = await axiosInstance.put(`/friends/users/${userId}/accept/${friendId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error accepting friend request from ${friendId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to accept friend request';
+    }
+  },
+
+  // Reject a friend request
+  rejectFriendRequest: async (userId, friendId) => {
+    try {
+      const response = await axiosInstance.delete(`/friends/users/${userId}/reject/${friendId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error rejecting friend request from ${friendId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to reject friend request';
+    }
+  },
+
+  // Remove a friend
+  removeFriend: async (userId, friendId) => {
+    try {
+      const response = await axiosInstance.delete(`/friends/users/${userId}/remove/${friendId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error removing friend ${friendId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to remove friend';
+    }
+  },
+
+  // Get all friends of a user
+  getUserFriends: async (userId) => {
+    try {
+      const response = await axiosInstance.get(`/friends/users/${userId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching friends for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch friends';
+    }
+  },
+
+  // Get pending friend requests
+  getPendingRequests: async (userId) => {
+    try {
+      const response = await axiosInstance.get(`/friends/users/${userId}/pending`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching pending friend requests for user ${userId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch pending requests';
+    }
+  },
+
+  // Check if users are friends
+  areFriends: async (userId1, userId2) => {
+    try {
+      const response = await axiosInstance.get(`/friends/users/${userId1}/is-friend/${userId2}`);
+      return response.data.areFriends;
+    } catch (error) {
+      console.error(`Error checking friendship between ${userId1} and ${userId2}:`, error);
+      return false; // Default to false on error
+    }
+  }
+};
+
+// Recipe Groups service
+export const recipeGroupService = {
+  // Create a new recipe group
+  createGroup: async (group) => {
+    try {
+      const response = await axiosInstance.post('/recipe-groups', group);
+      return response;
+    } catch (error) {
+      console.error('Error creating recipe group:', error);
+      throw error?.response?.data || error.message || 'Failed to create group';
+    }
+  },
+
+  // Get all recipe groups
+  getAllGroups: async () => {
+    try {
+      const response = await axiosInstance.get('/recipe-groups');
+      return response;
+    } catch (error) {
+      console.error('Error fetching recipe groups:', error);
+      throw error?.response?.data || error.message || 'Failed to fetch groups';
+    }
+  },
+
+  // Get a group by ID
+  getGroupById: async (groupId) => {
+    try {
+      const response = await axiosInstance.get(`/recipe-groups/${groupId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching recipe group ${groupId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch group';
+    }
+  },
+
+  // Get groups created by a user
+  getGroupsByCreator: async (creatorId) => {
+    try {
+      const response = await axiosInstance.get(`/recipe-groups/creator/${creatorId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching groups for creator ${creatorId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch groups';
+    }
+  },
+
+  // Search groups by name
+  searchGroups: async (name) => {
+    try {
+      const response = await axiosInstance.get(`/recipe-groups/search?name=${encodeURIComponent(name)}`);
+      return response;
+    } catch (error) {
+      console.error(`Error searching for groups with name ${name}:`, error);
+      throw error?.response?.data || error.message || 'Failed to search groups';
+    }
+  },
+
+  // Update a group
+  updateGroup: async (groupId, group) => {
+    try {
+      const response = await axiosInstance.put(`/recipe-groups/${groupId}`, group);
+      return response;
+    } catch (error) {
+      console.error(`Error updating group ${groupId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to update group';
+    }
+  },
+
+  // Delete a group
+  deleteGroup: async (groupId) => {
+    try {
+      const response = await axiosInstance.delete(`/recipe-groups/${groupId}`);
+      return response;
+    } catch (error) {
+      console.error(`Error deleting group ${groupId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to delete group';
+    }
+  },
+
+  // Add a member to a group
+  addMember: async (groupId, userId, role = 'MEMBER') => {
+    try {
+      const response = await axiosInstance.post(`/recipe-groups/${groupId}/members`, { userId, role });
+      return response;
+    } catch (error) {
+      console.error(`Error adding member ${userId} to group ${groupId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to add member to group';
+    }
+  },
+
+  // Get group members
+  getGroupMembers: async (groupId) => {
+    try {
+      const response = await axiosInstance.get(`/recipe-groups/${groupId}/members`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching members for group ${groupId}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch group members';
+    }
+  },
+
+  // Check if user is member of a group
+  isUserMember: async (groupId, userId) => {
+    try {
+      const response = await axiosInstance.get(`/recipe-groups/${groupId}/members/${userId}/check`);
+      return response.data.isMember;
+    } catch (error) {
+      console.error(`Error checking if user ${userId} is member of group ${groupId}:`, error);
+      return false; // Default to false on error
+    }
+  }
+};
+
+// Categories service
+export const categoryService = {
+  // Create a new category
+  createCategory: async (category) => {
+    try {
+      const response = await axiosInstance.post('/categories', category);
+      return response;
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw error?.response?.data || error.message || 'Failed to create category';
+    }
+  },
+
+  // Get all categories
+  getAllCategories: async () => {
+    try {
+      const response = await axiosInstance.get('/categories');
+      return response;
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error?.response?.data || error.message || 'Failed to fetch categories';
+    }
+  },
+
+  // Get a category by ID
+  getCategoryById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/categories/${id}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching category ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to fetch category';
+    }
+  },
+
+  // Search categories by name
+  searchCategories: async (name) => {
+    try {
+      const response = await axiosInstance.get(`/categories/search?name=${encodeURIComponent(name)}`);
+      return response;
+    } catch (error) {
+      console.error(`Error searching for categories with name ${name}:`, error);
+      throw error?.response?.data || error.message || 'Failed to search categories';
+    }
+  },
+
+  // Update a category
+  updateCategory: async (id, category) => {
+    try {
+      const response = await axiosInstance.put(`/categories/${id}`, category);
+      return response;
+    } catch (error) {
+      console.error(`Error updating category ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to update category';
+    }
+  },
+
+  // Delete a category
+  deleteCategory: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/categories/${id}`);
+      return response;
+    } catch (error) {
+      console.error(`Error deleting category ${id}:`, error);
+      throw error?.response?.data || error.message || 'Failed to delete category';
+    }
+  }
+};
 
 export default axiosInstance;

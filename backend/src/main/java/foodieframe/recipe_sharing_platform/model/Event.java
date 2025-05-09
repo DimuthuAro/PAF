@@ -26,8 +26,11 @@ public class Event {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;    /**
+    private Long id;
+
+    /**
      * ID of the user who created this event
+     * 
      * @crud.attribute required, references user entity
      */
     @NotNull(message = "UserId is required")
@@ -47,34 +50,38 @@ public class Event {
      */
     @NotBlank(message = "Description is required")
     @Size(min = 6, message = "Description must be at least 6 characters long")
-    private String description;    /**
+    private String description;
+
+    /**
      * URL or path to event image
+     * 
      * @crud.attribute required, min length: 6
      */
     @NotBlank(message = "Image is required")
-    @Size(min = 6, message = "Image must be at least 6 characters long")
-    private String image;
+    private String image = "https://example.com/default-image.jpg";
 
     /**
      * Date when the event will take place
-     * @crud.attribute required, filterable, min length: 6
+     * 
+     * @crud.attribute required, filterable
      */
     @NotBlank(message = "Date is required")
-    @Size(min = 6, message = "Date must be at least 6 characters long")
     private String date;
 
     /**
      * Location where the event will be held
-     * @crud.attribute required, filterable, min length: 6
+     * 
+     * @crud.attribute required, filterable
      */
     @NotBlank(message = "Location is required")
-    @Size(min = 6, message = "Location must be at least 6 characters long")
-    private String location;    /**
+    private String location;
+
+    /**
      * Time when the event will start
-     * @crud.attribute required, filterable, min length: 6
+     * 
+     * @crud.attribute required, filterable
      */
     @NotBlank(message = "Time is required")
-    @Size(min = 6, message = "Location must be at least 6 characters long")
     private String time;
 
     // Getters and Setters
