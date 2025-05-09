@@ -104,6 +104,21 @@ const Events = () => {
                                                 <span>{event.location}</span>
                                             </div>
                                         )}
+                                              <div className="mt-2 flex space-x-2 justify-end">
+                                        <button
+                                            onClick={() => handleEditClick(recipe.id)}
+                                            className="text-xs text-indigo-600 hover:text-indigo-800"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteComment(recipe.id)}
+                                            className="text-xs text-red-600 hover:text-red-800"
+                                        >
+                                            Delete
+                                        </button>
+                                        </div>
+
                                     </div>
                                 </div>
                             </Link>

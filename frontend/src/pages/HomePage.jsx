@@ -80,13 +80,12 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen ">
       {/* Top Navigation Bar - Facebook-like */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
+      <nav className="bg-white bg-opacity-40 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">Recipe<span className="text-black">Share</span></h1>
               <div className="ml-4 bg-gray-100 rounded-full px-4 py-2 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -116,7 +115,7 @@ const HomePage = () => {
       </nav>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="bg-white bg-opacity-10 backdrop-blur-sm shadow-md max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Sidebar - Navigation Links */}
           <div className="w-full lg:w-1/4">
@@ -132,11 +131,11 @@ const HomePage = () => {
                 </li>
                 {/* Create Post Button */}
                 <li>
-                  <Link to="/create-post" className="flex items-center p-2 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                  <Link to="/create-recipe" className="flex items-center p-2 bg-blue-50 hover:bg-blue-100 rounded-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    <span className="font-medium text-blue-700">Create Post</span>
+                    <span className="font-medium text-blue-700">Create Recipe</span>
                   </Link>
                 </li>
                 {/* Create Event Button */}
@@ -203,46 +202,56 @@ const HomePage = () => {
           {/* Center Feed - Posts and Recipes */}
           <div className="w-full lg:w-2/4">
             {/* Create Post */}
-            <div className="bg-white shadow rounded-lg p-4 mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <textarea
-                  className="w-full border border-gray-200 rounded-full px-4 py-2 text-gray-700 placeholder-gray-500"
-                  rows="1"
-                  placeholder="What's on your mind?"
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                ></textarea>
-              </div>
-              <div className="border-t border-gray-200 mt-4 pt-3">
-                <div className="flex justify-between items-center">
-                  <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Photo
-                  </button>
-                  <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Recipe
-                  </button>
-                  <button
-                    onClick={handlePostSubmit}
-                    className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Post
-                  </button>
-                </div>
-              </div>
-            </div>
+                  <div className="bg-white shadow rounded-lg p-4 mb-6">
+                    <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <textarea
+                      className="w-full border border-gray-200 rounded-full px-4 py-2 text-gray-700 placeholder-gray-500"
+                      rows="1"
+                      placeholder="What's on your mind?"
+                      value={postContent}
+                      onChange={(e) => setPostContent(e.target.value)}
+                    ></textarea>
+                    </div>
+                    <div className="border-t border-gray-200 mt-4 pt-3">
+                    <div className="flex justify-between items-center">
+                      <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Photo
+                      </button>
+                      <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Recipe
+                      </button>
+                      <button
+                      onClick={async () => {
+                        if (postContent.trim()) {
+                        try {
+                          const response = await recipeService.createRecipe({ content: postContent });
+                          setPosts([{ ...response.data, likes: 0, comments: [] }, ...posts]);
+                          setPostContent('');
+                        } catch (error) {
+                          console.error('Error creating post:', error);
+                        }
+                        }
+                      }}
+                      className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                      Post
+                      </button>
+                    </div>
+                    </div>
+                  </div>
 
-            {/* Posts Feed */}
+                  {/* Posts Feed */}
             <div className="space-y-6">
               {posts.map((post) => (
                 <div key={post.id} className="bg-white rounded-lg shadow">
@@ -306,8 +315,8 @@ const HomePage = () => {
                       recipes.slice(0, 4).map((recipe) => (
                         <Link to={`/recipes/${recipe.id}`} key={recipe.id} className="block hover:bg-gray-50 rounded-lg p-2 transition-colors">
                           <div className="h-32 bg-gray-200 rounded-lg mb-2 overflow-hidden">
-                            {recipe.imageUrl && (
-                              <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+                            {recipe.image && (
+                              <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />
                             )}
                           </div>
                           <h3 className="font-medium text-gray-900 truncate">{recipe.title}</h3>
@@ -339,8 +348,8 @@ const HomePage = () => {
 
           {/* Right Sidebar - Events, Trending */}
           <div className="w-full lg:w-1/4">
-            <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-20">
-              <h3 className="font-semibold text-gray-900 mb-4">Suggested for You</h3>
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg shadow p-4 mb-6 sticky top-20">
+              <h3 className="font-semibold text-black mb-4">Suggested for You</h3>
               <div className="space-y-4">
                 {suggestedGroups.map((group) => (
                   <div key={group.id} className="flex items-center">
@@ -354,7 +363,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-4">
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm shadow rounded-lg shadow p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Upcoming Cooking Events</h3>
               <div className="space-y-4">
                 {eventsLoading ? (
@@ -368,9 +377,9 @@ const HomePage = () => {
                     <div key={event.id}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-900">{event.name}</p>
-                        <p className="text-xs text-gray-500">{formatEventDate(event.date)}</p>
+                        <p className="text-xs text-black0">{formatEventDate(event.date)}</p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{event.attendees} people going</p>
+                      <p className="text-xs text-black-1">{event.attendees} people going</p>
                     </div>
                   ))
                 )}

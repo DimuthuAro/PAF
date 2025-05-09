@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import RecipeForm from '../components/RecipeForm';
 import { useAuth } from '../context/AuthContext';
 import { recipeService } from '../services/api';
+import { FiSave, FiX, FiCamera, FiVideo, FiTag, FiBook, FiList, FiFileText, FiGrid } from 'react-icons/fi';
 
 const EditRecipePage = () => {
   const { id } = useParams();
@@ -70,13 +71,22 @@ const EditRecipePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg">
-            <div className="px-6 py-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Recipe</h1>
-              <RecipeForm recipe={recipe} isEditing={true} />
+          <div className="overflow-hidden shadow-xl rounded-lg border border-indigo-100">
+            <div className="relative">
+              <div className="absolute inset-0 h-24 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+              <div className="relative px-6 pt-32 pb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Fabulous Recipe</h1>
+                <p className="text-gray-500 mb-6">Share your culinary masterpiece with the world</p>
+                {error && (
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                    <p className="text-red-700">{error}</p>
+                  </div>
+                )}
+                <RecipeForm recipe={recipe} isEditing={true} />
+              </div>
             </div>
           </div>
         </div>
@@ -85,4 +95,4 @@ const EditRecipePage = () => {
   );
 };
 
-export default EditRecipePage; 
+export default EditRecipePage;

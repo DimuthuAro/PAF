@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { interactionService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { recipeService } from '../services/api';
 
 const RecipeCard = ({ recipe }) => {
   const { currentUser } = useAuth();
@@ -102,6 +103,29 @@ const RecipeCard = ({ recipe }) => {
     }
   };
 
+  const handleEditClick = () => {
+    if (!currentUser?.user?.id) {
+      navigate('/login', { state: { from: window.location.pathname } });
+      return;
+    }
+
+    navigate(`/edit-recipe/${recipe.id}`, { state: { recipe } });
+  };
+
+  const handleDeleteComment = async (recipeId) => {
+    if (!currentUser?.user?.id) {
+      navigate('/login', { state: { from: window.location.pathname } });
+      return;
+    }
+
+    await recipeService.deleteRecipe(recipeId)
+    .then((response) => {
+      console.log('Recipe deleted successfully:', response);
+      alert('Recipe deleted successfully');
+      window.location.reload();
+    })  
+  }
+
   const difficultyColor = {
     'EASY': 'bg-green-100 text-green-800',
     'MEDIUM': 'bg-yellow-100 text-yellow-800',
@@ -118,6 +142,9 @@ const RecipeCard = ({ recipe }) => {
                 {recipe.title}
               </Link>
             </h2>
+            {recipe.image && (
+                              <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />
+                            )}
             <p className="text-gray-500 text-sm mb-2">By {recipe.user?.name || 'Unknown'}</p>
           </div>
           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${difficultyColor[recipe.difficulty]}`}>
@@ -154,7 +181,20 @@ const RecipeCard = ({ recipe }) => {
           </div>
           
           <div className="text-sm text-gray-500">
-            <span>{recipe.cookingTime} mins</span>
+          <div className="mt-2 flex space-x-2 justify-end">
+                  <button
+                    onClick={() => handleEditClick(recipe.id)}
+                    className="text-xs text-indigo-600 hover:text-indigo-800"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteComment(recipe.id)}
+                    className="text-xs text-red-600 hover:text-red-800"
+                  >
+                    Delete
+                  </button>
+                </div>
           </div>
         </div>
       </div>

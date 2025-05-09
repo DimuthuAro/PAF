@@ -11,22 +11,23 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-black bg-opacity-20 backdrop-blur-sm shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-indigo-600">RecipeShare</span>
+              <img src="logo.png" alt="Logo" className="h-20 w-auto" />
+              <h1 className="text-2xl font-bold text-blue-600">Recipe<span className="text-black">Share</span></h1>
             </Link>
             <div className="hidden md:ml-6 md:flex md:space-x-8">
-              <Link to="/" className="inline-flex items-center px-1 pt-1 text-gray-900 hover:text-indigo-600">
+              <Link to="/" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
                 Home
               </Link>
-              <Link to="/recipes" className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-indigo-600">
+              <Link to="/recipes" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
                 Recipes
               </Link>
               {currentUser && (
-                <Link to="/create-recipe" className="inline-flex items-center px-1 pt-1 text-gray-500 hover:text-indigo-600">
+                <Link to="/create-recipe" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
                   Create Recipe
                 </Link>
               )}
@@ -36,7 +37,7 @@ const Navbar = () => {
           <div className="hidden md:ml-6 md:flex md:items-center">
             {currentUser ? (
               <div className="flex items-center space-x-4">
-                <Link to="/profile" className="text-gray-500 hover:text-indigo-600">
+                <Link to="/profile" className="text-black hover:text-indigo-600">
                   Profile
                 </Link>
                 <button

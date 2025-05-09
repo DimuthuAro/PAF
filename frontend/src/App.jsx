@@ -14,7 +14,7 @@ import CategoryPage from './pages/CategoryPage';
 import Events from './pages/Events';
 import EventDetailPage from './pages/EventDetailPage';
 import CreateEventPage from './pages/CreateEventPage';
-import CreatePostPage from './pages/CreatePostPage';
+// import CreatePostPage from './pages/CreatePostPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import FriendsPage from './pages/FriendsPage';
 import RecipeGroupsPage from './pages/RecipeGroupsPage';
@@ -30,30 +30,34 @@ const ProtectedRoute = ({ element }) => {
 
 function AppRoutes() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main>           
-        <Routes>
-          <Route path="/" element={<ProtectedRoute element={<HomePage />} />} />
-          <Route path="/recipes" element={<ProtectedRoute element={<RecipesPage />} />} />
-          <Route path="/recipes/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
-          <Route path="/create-recipe" element={<ProtectedRoute element={<CreateRecipePage />} />} />
-          <Route path="/create-post" element={<ProtectedRoute element={<CreatePostPage />} />} />
-          <Route path="/edit-recipe/:id" element={<ProtectedRoute element={<EditRecipePage />} />} />
-          <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/categorypage/:categoryName" element={<CategoryPage />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />
-          <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/favorites" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
-          <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
-          <Route path="/groups" element={<ProtectedRoute element={<RecipeGroupsPage />} />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
+    <div className="min-h-screen relative">
+        <div className="min-h-screen bg-cover bg-center bg-opacity-50 relative" style={{ backgroundImage: "url('bg.jpg')" }}>
+        <Navbar />
+        <main>
+          <div>
+          </div>           
+          <Routes>
+            <Route path="/" element={<ProtectedRoute element={<HomePage />} />} />
+            <Route path="/recipes" element={<ProtectedRoute element={<RecipesPage />} />} />
+            <Route path="/recipes/:id" element={<ProtectedRoute element={<RecipeDetailPage />} />} />
+        
+            <Route path="/create-recipe" element={<ProtectedRoute element={<CreateRecipePage />} />} />
+            <Route path="/edit-recipe/:id" element={<ProtectedRoute element={<EditRecipePage />} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/categorypage/:categoryName" element={<CategoryPage />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/favorites" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
+            <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
+            <Route path="/groups" element={<ProtectedRoute element={<RecipeGroupsPage />} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }

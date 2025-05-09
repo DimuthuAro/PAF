@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { eventService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { FiSave, FiX, FiCalendar, FiClock, FiMapPin, FiCamera, FiFileText } from 'react-icons/fi';
 
 const CreateEventPage = () => {
   const { currentUser, loading } = useAuth();
-  const navigate = useNavigate(); const [newEvent, setNewEvent] = useState({
+  const navigate = useNavigate(); 
+  const [newEvent, setNewEvent] = useState({
     userId: currentUser ? currentUser.user.id : null,
     title: '',
     description: '',
@@ -91,8 +93,8 @@ const CreateEventPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-slate-50 flex justify-center items-center">
+        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -102,130 +104,125 @@ const CreateEventPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg">
-            <div className="px-6 py-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Event</h1>
-              
-              {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-                  <p className="text-red-700">{error}</p>
-                </div>
-              )}
-              
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-6">
-                  <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                      Event Title
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      name="title"
-                      value={newEvent.title}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
+      <div className="max-w-7xl mx-0 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <div className="overflow-hidden shadow-xl rounded-lg border border-indigo-100">
+            <div className="relative">
+              <div className="absolute inset-0 h-24 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+              <div className="relative px-6 pt-32 pb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Event</h1>
+                <p className="text-gray-500 mb-6">Share your event with the community</p>
+                {error && (
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                    <p className="text-red-700">{error}</p>
                   </div>
-                  
-                  <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                      Event Date
-                    </label>
-                    <input
-                      type="date"
-                      id="date"
-                      name="date"
-                      value={newEvent.date}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
+                )}
+                <form onSubmit={handleSubmit}>
+                  <div className="space-y-8">
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-5 rounded-lg border border-indigo-100 shadow-sm transition-all hover:shadow-md">
+                      <div className="flex items-center mb-2">
+                        <FiFileText className="text-indigo-500 mr-2 text-xl" />
+                        <label htmlFor="title" className="block text-sm font-medium text-indigo-700">Event Title</label>
+                      </div>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value={newEvent.title}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-1 block w-full rounded-md border-indigo-300 bg-white shadow-sm focus:border-purple-500 focus:ring-purple-500 transition-all" placeholder="Enter your event title" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-100 shadow-sm transition-all hover:shadow-md">
+                        <div className="flex items-center mb-2">
+                          <FiCalendar className="text-blue-500 mr-2 text-xl" />
+                          <label htmlFor="date" className="block text-sm font-medium text-blue-700">Event Date</label>
+                        </div>
+                        <input
+                          type="date"
+                          id="date"
+                          name="date"
+                          value={newEvent.date}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full rounded-md border-blue-300 bg-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all" />
+                      </div>
+                      <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-lg border border-amber-100 shadow-sm transition-all hover:shadow-md">
+                        <div className="flex items-center mb-2">
+                          <FiClock className="text-amber-500 mr-2 text-xl" />
+                          <label htmlFor="time" className="block text-sm font-medium text-amber-700">Event Time</label>
+                        </div>
+                        <input
+                          type="time"
+                          id="time"
+                          name="time"
+                          value={newEvent.time}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full rounded-md border-amber-300 bg-white shadow-sm focus:border-orange-500 focus:ring-orange-500 transition-all" />
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-r from-teal-50 to-green-50 p-5 rounded-lg border border-teal-100 shadow-sm transition-all hover:shadow-md">
+                      <div className="flex items-center mb-2">
+                        <FiMapPin className="text-teal-500 mr-2 text-xl" />
+                        <label htmlFor="location" className="block text-sm font-medium text-teal-700">Event Location</label>
+                      </div>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={newEvent.location}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-1 block w-full rounded-md border-teal-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 transition-all" placeholder="Enter your event venue or address" />
+                    </div>
+                    <div className="bg-gradient-to-r from-pink-50 to-red-50 p-5 rounded-lg border border-pink-100 shadow-sm transition-all hover:shadow-md">
+                      <div className="flex items-center mb-2">
+                        <FiCamera className="text-pink-500 mr-2 text-xl" />
+                        <label htmlFor="image" className="block text-sm font-medium text-pink-700">Event Image URL</label>
+                      </div>
+                      <input
+                        type="url"
+                        id="image"
+                        name="image"
+                        value={newEvent.image}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-1 block w-full rounded-md border-pink-300 bg-white shadow-sm focus:border-red-500 focus:ring-red-500 transition-all" placeholder="https://example.com/image.jpg" />
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-100 shadow-sm transition-all hover:shadow-md">
+                      <div className="flex items-center mb-2">
+                        <FiFileText className="text-purple-500 mr-2 text-xl" />
+                        <label htmlFor="description" className="block text-sm font-medium text-purple-700">Event Description</label>
+                      </div>
+                      <textarea
+                        id="description"
+                        name="description"
+                        value={newEvent.description}
+                        onChange={handleInputChange}
+                        rows={6}
+                        required
+                        className="mt-1 block w-full rounded-md border-purple-300 bg-white shadow-sm focus:border-pink-500 focus:ring-pink-500 transition-all" placeholder="Provide a detailed description of your event..." />
+                    </div>
+                    <div className="flex justify-end space-x-4 mt-8">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/events')}
+                        className="flex items-center px-6 py-3 border border-red-300 shadow-sm text-base font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">
+                        <FiX className="mr-2 text-red-500" /> Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className={`flex items-center px-6 py-3 border border-transparent shadow-md text-base font-medium rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all ${submitting ? 'opacity-75 cursor-not-allowed' : ''}`}>
+                        <FiSave className="mr-2" /> {submitting ? 'Creating...' : 'Create Event'}
+                      </button>
+                    </div>
                   </div>
-
-                  <div>
-                    <label htmlFor="time" className="block text-sm font-medium text-gray-700">
-                      Event Time
-                    </label>
-                    <input
-                      type="time"
-                      id="time"
-                      name="time"
-                      value={newEvent.time}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Event Location
-                    </label>
-                    <input
-                      type="text"
-                      id="location"
-                      name="location"
-                      value={newEvent.location}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-                      Image URL
-                    </label>
-                    <input
-                      type="url"
-                      id="image"
-                      name="image"
-                      value={newEvent.image}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                      Event Description
-                    </label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      value={newEvent.description}
-                      onChange={handleInputChange}
-                      rows={6}
-                      required
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/events')}
-                      className="px-6 py-2 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className={`px-6 py-2 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${submitting ? 'opacity-75 cursor-not-allowed' : ''}`}
-                    >
-                      {submitting ? 'Creating...' : 'Create Event'}
-                    </button>
-                  </div>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>

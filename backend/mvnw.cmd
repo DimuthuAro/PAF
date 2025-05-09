@@ -78,7 +78,7 @@ if ($env:MVNW_REPOURL) {
 }
 $distributionUrlName = $distributionUrl -replace '^.*/',''
 $distributionUrlNameMain = $distributionUrlName -replace '\.[^.]*$','' -replace '-bin$',''
-$MAVEN_HOME_PARENT = "$HOME/.m2/wrapper/dists/$distributionUrlNameMain"
+$MAVEN_HOME_PARENT = if ($env:MAVEN_USER_HOME) { "$env:MAVEN_USER_HOME/wrapper/dists/$distributionUrlNameMain" } else { "$env:USER_HOME/.m2/wrapper/dists/$distributionUrlNameMain" }
 if ($env:MAVEN_USER_HOME) {
   $MAVEN_HOME_PARENT = "$env:MAVEN_USER_HOME/wrapper/dists/$distributionUrlNameMain"
 }
