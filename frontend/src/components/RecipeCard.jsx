@@ -158,10 +158,19 @@ const RecipeCard = ({ recipe }) => {
               <Link to={`/recipes/${recipe.id}`} className="hover:text-indigo-600">
                 {recipe.title}
               </Link>
-            </h2>
-            {recipe.image && (
-                              <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />
-                            )}
+            </h2>            {recipe.image && (
+              <img 
+                src={recipe.image.startsWith('/uploads/') 
+                  ? `http://localhost:8082${recipe.image}` 
+                  : recipe.image} 
+                alt={recipe.title} 
+                className="w-full h-48 object-cover rounded-md mb-3" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/400x200?text=Recipe';
+                }}
+              />
+            )}
             <p className="text-gray-500 text-sm mb-2">By {recipe.user?.name || 'Unknown'}</p>
           </div>
           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${difficultyColor[recipe.difficulty]}`}>

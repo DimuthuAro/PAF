@@ -129,6 +129,7 @@ const HomePage = () => {
         setLoading(true);
         const recipesResponse = await recipeService.getAllRecipes();
         setRecipes(recipesResponse.data?.slice(0, 6) || []);
+        console.log('Fetched recipes:', recipesResponse.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching recipes:', error);
@@ -416,9 +417,18 @@ const HomePage = () => {
                     {recipes.length > 0 ? (
                       recipes.slice(0, 4).map((recipe) => (
                         <Link to={`/recipes/${recipe.id}`} key={recipe.id} className="block hover:bg-gray-50 rounded-lg p-2 transition-colors">
-                          <div className="h-32 bg-gray-200 rounded-lg mb-2 overflow-hidden">
-                            {recipe.image && (
-                              <img alt={recipe.title} className="w-full h-64 object-cover rounded-lg shadow-md" src={recipe.image}></img>
+                          <div className="h-32 bg-gray-200 rounded-lg mb-2 overflow-hidden">                            {recipe.image && (
+                              <img 
+                                alt={recipe.title} 
+                                className="w-full h-32 object-cover rounded-lg shadow-md" 
+                                src={recipe.image.startsWith('/uploads/') 
+                                  ? `http://localhost:8082${recipe.image}` 
+                                  : recipe.image}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = 'https://via.placeholder.com/400x200?text=Recipe';
+                                }}
+                              />
                             )}
                           </div>
                           <h3 className="font-medium text-gray-900 truncate">{recipe.title}</h3>

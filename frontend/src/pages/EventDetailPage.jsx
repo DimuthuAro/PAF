@@ -231,7 +231,17 @@ const EventDetailPage = () => {
           {/* Event Image */}
           {event.image && (
             <div className="h-64 sm:h-80 md:h-96 bg-gray-200 overflow-hidden">
-              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+              <img 
+                src={event.image.startsWith('/uploads/') 
+                  ? `http://localhost:8082${event.image}` 
+                  : event.image} 
+                alt={event.title} 
+                className="w-full h-full object-cover" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/800x400?text=Event+Image+Not+Available';
+                }}
+              />
             </div>
           )}
           

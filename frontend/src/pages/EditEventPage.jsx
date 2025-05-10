@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { eventService } from '../services/api';
-import { FiSave, FiX, FiCalendar, FiClock, FiMapPin, FiCamera, FiFileText } from 'react-icons/fi';
+import { FiSave, FiX, FiCalendar, FiClock, FiMapPin, FiCamera, FiFileText, FiUpload, FiLink } from 'react-icons/fi';
 
 const EditEventPage = () => {
   const { id } = useParams();
@@ -21,6 +21,10 @@ const EditEventPage = () => {
     image: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [useImageUrl, setUseImageUrl] = useState(true);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -65,6 +69,34 @@ const EditEventPage = () => {
       [name]: value
     });
   };
+  
+  // Handle image file selection
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image file is too large (max 5MB)');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      setImageFile(file);
+      setUseImageUrl(false);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,6 +122,19 @@ const EditEventPage = () => {
         setSubmitting(false);
         return;
       }
+      
+      // Check image source
+      if (useImageUrl && (!editedEvent.image || editedEvent.image.trim() === '')) {
+        setError("Please provide a valid image URL");
+        setSubmitting(false);
+        return;
+      }
+      
+      if (!useImageUrl && !imageFile && !editedEvent.image) {
+        setError("Please provide either an image URL or upload an image file");
+        setSubmitting(false);
+        return;
+      }
 
       // Ensure time has minimum length
       let timeValue = editedEvent.time;
@@ -111,11 +156,29 @@ const EditEventPage = () => {
         date: dateValue,
         time: timeValue,
         location: editedEvent.location,
-        image: editedEvent.image,
         userId: event.userId // preserve owner
       };
       
-      await eventService.updateEvent(id, updatedEventData);
+      // Handle image update based on selected method
+      if (useImageUrl) {
+        updatedEventData.image = editedEvent.image;
+      } else if (imageFile) {
+        // If using file upload and a new file is selected
+        updatedEventData.imageFile = imageFile;
+        // We'll handle this specially in the service
+      } else {
+        // Keep existing image if no new file is selected
+        updatedEventData.image = event.image;
+      }
+      
+      if (!useImageUrl && imageFile) {
+        // If we have a new file, use the upload endpoint
+        await eventService.createEvent(updatedEventData); // reuse the create with files method
+      } else {
+        // Otherwise use the normal update endpoint
+        await eventService.updateEvent(id, updatedEventData);
+      }
+      
       navigate(`/events/${id}`);
     } catch (error) {
       console.error('Error updating event:', error);
@@ -236,18 +299,112 @@ const EditEventPage = () => {
                     <div className="bg-gradient-to-r from-pink-50 to-red-50 p-5 rounded-lg border border-pink-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center mb-2">
                         <FiCamera className="text-pink-500 mr-2 text-xl" />
-                        <label htmlFor="image" className="block text-sm font-medium text-pink-700">Event Image URL</label>
+                        <span className="block text-sm font-medium text-pink-700">Event Image</span>
                       </div>
-                      <input
-                        type="url"
-                        id="image"
-                        name="image"
-                        value={editedEvent.image}
-                        onChange={handleInputChange}
-                        required
-                        className="mt-1 block w-full rounded-md border-pink-300 bg-white shadow-sm focus:border-red-500 focus:ring-red-500 transition-all" 
-                        placeholder="https://example.com/image.jpg" 
-                      />
+                      
+                      {/* Image Source Toggle */}
+                      <div className="flex mb-4 bg-white rounded-md overflow-hidden border border-gray-200">
+                        <button
+                          type="button"
+                          onClick={() => setUseImageUrl(true)}
+                          className={`flex-1 py-2 px-4 text-sm font-medium flex items-center justify-center ${
+                            useImageUrl 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <FiLink className="mr-1" /> Use URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseImageUrl(false)}
+                          className={`flex-1 py-2 px-4 text-sm font-medium flex items-center justify-center ${
+                            !useImageUrl 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <FiUpload className="mr-1" /> Upload File
+                        </button>
+                      </div>
+                      
+                      {/* URL Input */}
+                      {useImageUrl && (
+                        <>
+                          <input
+                            type="url"
+                            id="image"
+                            name="image"
+                            value={editedEvent.image}
+                            onChange={handleInputChange}
+                            required={useImageUrl}
+                            className="mt-1 block w-full rounded-md border-pink-300 bg-white shadow-sm focus:border-red-500 focus:ring-red-500 transition-all"
+                            placeholder="https://example.com/image.jpg"
+                          />
+                          
+                          {/* URL Image Preview */}
+                          {editedEvent.image && (
+                            <div className="mt-3">
+                              <img 
+                                src={editedEvent.image.startsWith('/uploads/') 
+                                  ? `http://localhost:8082${editedEvent.image}` 
+                                  : editedEvent.image} 
+                                alt="Event preview" 
+                                className="h-32 object-cover rounded-md shadow-sm"
+                                onError={(e) => e.target.style.display = 'none'}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* File Upload */}
+                      {!useImageUrl && (
+                        <div>
+                          <div className="flex items-center mt-2">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current.click()}
+                              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition flex items-center"
+                            >
+                              <FiUpload className="mr-1" /> Choose Image
+                            </button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageFileChange}
+                              className="hidden"
+                            />
+                            <span className="ml-2 text-sm text-gray-500">
+                              {imageFile ? imageFile.name : 'No file selected'}
+                            </span>
+                          </div>
+                          
+                          {/* Image preview */}
+                          {imagePreview ? (
+                            <div className="mt-3">
+                              <img 
+                                src={imagePreview} 
+                                alt="Event preview" 
+                                className="h-32 object-cover rounded-md shadow-sm"
+                              />
+                            </div>
+                          ) : editedEvent.image && (
+                            <div className="mt-3">
+                              <img 
+                                src={editedEvent.image.startsWith('/uploads/') 
+                                  ? `http://localhost:8082${editedEvent.image}` 
+                                  : editedEvent.image} 
+                                alt="Current event image" 
+                                className="h-32 object-cover rounded-md shadow-sm"
+                                onError={(e) => e.target.style.display = 'none'}
+                              />
+                              <p className="text-sm text-gray-500 mt-1">Current image</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center mb-2">

@@ -226,20 +226,98 @@ const CreateEventPage = () => {
                         onChange={handleInputChange}
                         required
                         className="mt-1 block w-full rounded-md border-teal-300 bg-white shadow-sm focus:border-green-500 focus:ring-green-500 transition-all" placeholder="Enter your event venue or address" />
-                    </div>
-                    <div className="bg-gradient-to-r from-pink-50 to-red-50 p-5 rounded-lg border border-pink-100 shadow-sm transition-all hover:shadow-md">
+                    </div>                    <div className="bg-gradient-to-r from-pink-50 to-red-50 p-5 rounded-lg border border-pink-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center mb-2">
                         <FiCamera className="text-pink-500 mr-2 text-xl" />
-                        <label htmlFor="image" className="block text-sm font-medium text-pink-700">Event Image URL</label>
+                        <span className="block text-sm font-medium text-pink-700">Event Image</span>
                       </div>
-                      <input
-                        type="url"
-                        id="image"
-                        name="image"
-                        value={newEvent.image}
-                        onChange={handleInputChange}
-                        required
-                        className="mt-1 block w-full rounded-md border-pink-300 bg-white shadow-sm focus:border-red-500 focus:ring-red-500 transition-all" placeholder="https://example.com/image.jpg" />
+                      
+                      {/* Image Source Toggle */}
+                      <div className="flex mb-4 bg-white rounded-md overflow-hidden border border-gray-200">
+                        <button
+                          type="button"
+                          onClick={() => setUseImageUrl(true)}
+                          className={`flex-1 py-2 px-4 text-sm font-medium flex items-center justify-center ${
+                            useImageUrl 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <FiLink className="mr-1" /> Use URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setUseImageUrl(false)}
+                          className={`flex-1 py-2 px-4 text-sm font-medium flex items-center justify-center ${
+                            !useImageUrl 
+                              ? 'bg-indigo-100 text-indigo-700' 
+                              : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                        >
+                          <FiUpload className="mr-1" /> Upload File
+                        </button>
+                      </div>
+                      
+                      {/* URL Input */}
+                      {useImageUrl && (
+                        <input
+                          type="url"
+                          id="image"
+                          name="image"
+                          value={newEvent.image}
+                          onChange={handleInputChange}
+                          placeholder="https://example.com/image.jpg"
+                          className="mt-1 block w-full rounded-md border-pink-300 bg-white shadow-sm focus:border-red-500 focus:ring-red-500 transition-all"
+                        />
+                      )}
+                      
+                      {/* File Upload */}
+                      {!useImageUrl && (
+                        <div>
+                          <div className="flex items-center mt-2">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current.click()}
+                              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition flex items-center"
+                            >
+                              <FiUpload className="mr-1" /> Choose Image
+                            </button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageFileChange}
+                              className="hidden"
+                            />
+                            <span className="ml-2 text-sm text-gray-500">
+                              {imageFile ? imageFile.name : 'No file selected'}
+                            </span>
+                          </div>
+                          
+                          {/* Image preview */}
+                          {imagePreview && (
+                            <div className="mt-3">
+                              <img 
+                                src={imagePreview} 
+                                alt="Event preview" 
+                                className="h-32 object-cover rounded-md shadow-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* URL Image Preview */}
+                      {useImageUrl && newEvent.image && (
+                        <div className="mt-3">
+                          <img 
+                            src={newEvent.image} 
+                            alt="Event preview from URL" 
+                            className="h-32 object-cover rounded-md shadow-sm"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center mb-2">

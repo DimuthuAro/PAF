@@ -286,7 +286,17 @@ const Events = () => {
                                     <div className="p-6">
                                         {event.image && (
                                             <div className="h-48 bg-gray-200 rounded-lg mb-4 overflow-hidden">
-                                                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                                                <img 
+                                                  src={event.image.startsWith('/uploads/') 
+                                                    ? `http://localhost:8082${event.image}` 
+                                                    : event.image} 
+                                                  alt={event.title} 
+                                                  className="w-full h-full object-cover" 
+                                                  onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://via.placeholder.com/400x200?text=Event';
+                                                  }}
+                                                />
                                             </div>
                                         )}
                                         <h2 className="text-xl font-semibold text-gray-900 mb-2">{event.title}</h2>
