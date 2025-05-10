@@ -1,30 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { eventService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { FiSave, FiX, FiCalendar, FiClock, FiMapPin, FiCamera, FiFileText } from 'react-icons/fi';
+import { FiSave, FiX, FiCalendar, FiClock, FiMapPin, FiCamera, FiFileText, FiUpload, FiLink } from 'react-icons/fi';
 
 const CreateEventPage = () => {
   const { currentUser, loading } = useAuth();
-  const navigate = useNavigate(); 
-  const [newEvent, setNewEvent] = useState({
+  const navigate = useNavigate();   const [newEvent, setNewEvent] = useState({
     userId: currentUser ? currentUser.user.id : null,
     title: '',
     description: '',
     date: new Date().toISOString().split('T')[0], // Set default date to today
     time: '12:00',
     location: '',
-    image: 'https://example.com/default-image.jpg' // Set default image URL
+    image: '' // Empty by default, will be filled by URL or file upload
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [useImageUrl, setUseImageUrl] = useState(true);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!loading && !currentUser) {
       navigate('/login', { state: { from: '/events/create', message: 'Please login to create an event' } });
     }
   }, [currentUser, loading, navigate]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewEvent({
@@ -32,7 +34,34 @@ const CreateEventPage = () => {
       [name]: value
     });
   };
+  
+  // Handle image file selection
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image file is too large (max 5MB)');
+        return;
+      }
 
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      setImageFile(file);
+      setUseImageUrl(false);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -57,6 +86,19 @@ const CreateEventPage = () => {
         setSubmitting(false);
         return;
       }
+      
+      // Check image source
+      if (!useImageUrl && !imageFile) {
+        setError("Please provide either an image URL or upload an image file");
+        setSubmitting(false);
+        return;
+      }
+      
+      if (useImageUrl && (!newEvent.image || newEvent.image.trim() === '')) {
+        setError("Please provide a valid image URL");
+        setSubmitting(false);
+        return;
+      }
 
       // Ensure time has minimum length of 6 characters
       let timeValue = newEvent.time;
@@ -77,6 +119,13 @@ const CreateEventPage = () => {
         date: dateValue,
         userId: currentUser.user.id
       };
+      
+      // Add image file if using file upload
+      if (!useImageUrl && imageFile) {
+        eventData.imageFile = imageFile;
+        // Remove the image URL property if we're using a file
+        delete eventData.image;
+      }
       
       console.log("Sending event data to backend:", eventData);
 

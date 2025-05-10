@@ -287,7 +287,7 @@ const EventDetailPage = () => {
             {/* RSVP Section placeholder - can be expanded later */}
             <div className="border-t border-gray-200 pt-6">
               <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300">
-                RSVP to Event
+                Join Event
               </button>
               <p className="mt-2 text-gray-600 text-sm">Join us for this exciting event!</p>
             </div>

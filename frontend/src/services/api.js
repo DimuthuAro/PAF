@@ -176,13 +176,43 @@ export const eventService = {
       throw error?.response?.data || error.message || 'Failed to fetch event';
     }
   },
-
   createEvent: async (event) => {
     try {
       console.log("Sending event data to backend:", event);
-      const response = await axiosInstance.post('/events', event);
-      console.log("Event created successfully:", response.data);
-      return response;
+      
+      // Check if event data contains a file or a URL
+      if (event.imageFile) {
+        // Create a FormData object for file upload
+        const formData = new FormData();
+        Object.keys(event).forEach(key => {
+          if (key === 'imageFile') {
+            formData.append('imageFile', event.imageFile);
+          } else {
+            formData.append(key, event[key]);
+          }
+        });
+        
+        // Use a different axios instance for file uploads with multipart/form-data
+        const fileUploadInstance = axios.create({
+          baseURL: API_URL,
+          withCredentials: true
+        });
+        
+        // Add auth token if available
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user && user.token) {
+          fileUploadInstance.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+        }
+        
+        const response = await fileUploadInstance.post('/events/upload', formData);
+        console.log("Event created successfully with image upload:", response.data);
+        return response;
+      } else {
+        // Regular JSON request for URL-based images
+        const response = await axiosInstance.post('/events', event);
+        console.log("Event created successfully:", response.data);
+        return response;
+      }
     } catch (error) {
       console.error("Error creating event:", error);
       console.error("Response data:", error?.response?.data);
