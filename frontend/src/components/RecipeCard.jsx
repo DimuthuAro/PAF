@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { interactionService } from '../services/api';
+import { interactionService, savedRecipeService, recipeService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { recipeService } from '../services/api';
 
 const RecipeCard = ({ recipe }) => {
   const { currentUser } = useAuth();
@@ -22,26 +21,23 @@ const RecipeCard = ({ recipe }) => {
           console.warn('Failed to fetch like count due to a network or CORS issue.');
         }
       }
-    };
-
-    const checkUserInteractions = async () => {
+    }; const checkUserInteractions = async () => {
     if (currentUser?.user?.id && recipe?.id) {
         try {
-          const [likeResponse, favoriteResponse] = await Promise.all([
-            interactionService.checkUserInteraction(
-              currentUser.user.id,
-              recipe.id,
-              'LIKE'
-            ),
-            interactionService.checkUserInteraction(
-              currentUser.user.id,
-              recipe.id,
-              'FAVORITE'
-            )
-          ]);
-
+          // Check likes through interaction service
+          const likeResponse = await interactionService.checkUserInteraction(
+            currentUser.user.id,
+            recipe.id,
+            'LIKE'
+          );
           setIsLiked(likeResponse.data);
-          setIsFavorite(favoriteResponse.data);
+
+          // Check if recipe is saved using savedRecipeService
+          const isSaved = await savedRecipeService.isRecipeSaved(
+            currentUser.user.id,
+            recipe.id
+          );
+          setIsFavorite(isSaved);
         } catch (error) {
           console.error('Error checking user interactions:', error);
           if (error.message.includes('CORS') || error.message.includes('Network Error')) {
@@ -82,7 +78,6 @@ const RecipeCard = ({ recipe }) => {
       alert('Failed to update like. Please try again.');
     }
   };
-
   const handleFavorite = async () => {
     if (!currentUser?.user?.id) {
       navigate('/login', { state: { from: window.location.pathname } });
@@ -91,15 +86,37 @@ const RecipeCard = ({ recipe }) => {
 
     try {
       if (!isFavorite) {
-        await interactionService.createFavorite(currentUser.user.id, recipe.id);
+        // Save the recipe
+        await savedRecipeService.saveRecipe(currentUser.user.id, recipe.id);
         setIsFavorite(true);
+
+        // Show brief success message
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        successToast.textContent = 'Recipe saved!';
+        document.body.appendChild(successToast);
+        setTimeout(() => document.body.removeChild(successToast), 2000);
       } else {
-        await interactionService.deleteTypeInteractions(recipe.id, 'FAVORITE');
+        // Remove the recipe from saved collection
+        await savedRecipeService.removeSavedRecipe(currentUser.user.id, recipe.id);
         setIsFavorite(false);
+
+        // Show brief unsave message
+        const successToast = document.createElement('div');
+        successToast.className = 'fixed top-5 right-5 bg-gray-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        successToast.textContent = 'Recipe removed from saved';
+        document.body.appendChild(successToast);
+        setTimeout(() => document.body.removeChild(successToast), 2000);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
-      alert('Failed to update favorite status. Please try again.');
+      console.error('Error toggling saved recipe:', error);
+
+      // Create an error toast
+      const errorToast = document.createElement('div');
+      errorToast.className = 'fixed top-5 right-5 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      errorToast.textContent = typeof error === 'string' ? error : 'Failed to update saved status. Please try again.';
+      document.body.appendChild(errorToast);
+      setTimeout(() => document.body.removeChild(errorToast), 3000);
     }
   };
 

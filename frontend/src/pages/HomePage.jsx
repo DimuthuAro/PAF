@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { recipeService, eventService, userService } from '../services/api';
+import { recipeService, eventService, userService, categoryService } from '../services/api';
 import RecipeCard from '../components/RecipeCard';
 
 const HomePage = () => {
@@ -13,6 +13,20 @@ const HomePage = () => {
   const [eventsError, setEventsError] = useState(null);
   const [postContent, setPostContent] = useState('');
   const [posts, setPosts] = useState([]);
+
+  // Recipe modal states
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [newRecipe, setNewRecipe] = useState({
+    title: '',
+    description: '',
+    steps: '',
+    category: '',
+    tags: ''
+  });
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [submittingRecipe, setSubmittingRecipe] = useState(false);
+  const [recipeError, setRecipeError] = useState(null);
 
   const handlePostSubmit = () => {
     if (postContent.trim()) {
@@ -27,6 +41,85 @@ const HomePage = () => {
         post.id === postId ? { ...post, likes: post.likes + 1 } : post
       )
     );
+  };
+
+  // Fetch categories for recipe creation
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const response = await categoryService.getAllCategories();
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setRecipeError('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  // Handle recipe input changes
+  const handleRecipeInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewRecipe(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle recipe form submission
+  const handleRecipeSubmit = async (e) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (!newRecipe.title.trim() || !newRecipe.description.trim() || !newRecipe.steps.trim()) {
+      setRecipeError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setSubmittingRecipe(true);
+      setRecipeError(null);
+
+      // Create FormData for the recipe
+      const formData = new FormData();
+      Object.keys(newRecipe).forEach(key => {
+        formData.append(key, newRecipe[key]);
+      });
+
+      // Submit the recipe
+      const response = await recipeService.createRecipeWithFiles(formData);
+
+      // Reset form and close modal
+      setNewRecipe({
+        title: '',
+        description: '',
+        steps: '',
+        category: '',
+        tags: ''
+      });
+
+      // Add the new recipe to the recipes list if it was returned
+      if (response.data) {
+        setRecipes(prevRecipes => [response.data, ...prevRecipes]);
+      }
+
+      // Close the modal
+      setShowRecipeModal(false);
+
+      // Create a post about the new recipe
+      setPosts([{
+        id: Date.now(),
+        content: `I just created a new recipe: ${newRecipe.title}!`,
+        likes: 0,
+        comments: []
+      }, ...posts]);
+
+    } catch (error) {
+      console.error('Error creating recipe:', error);
+      setRecipeError('Failed to create recipe. Please try again.');
+    } finally {
+      setSubmittingRecipe(false);
+    }
   };
 
   useEffect(() => {
@@ -66,6 +159,13 @@ const HomePage = () => {
 
     fetchData();
   }, []);
+
+  // Effect to fetch categories when recipe modal opens
+  useEffect(() => {
+    if (showRecipeModal) {
+      fetchCategories();
+    }
+  }, [showRecipeModal]);
 
   // Format date for display
   const formatEventDate = (dateString) => {
@@ -200,40 +300,42 @@ const HomePage = () => {
           </div>
 
           {/* Center Feed - Posts and Recipes */}
-          <div className="w-full lg:w-2/4">
-            {/* Create Post */}
+          <div className="w-full lg:w-2/4">            {/* Create Post */}
                   <div className="bg-white shadow rounded-lg p-4 mb-6">
                     <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <textarea
-                      className="w-full border border-gray-200 rounded-full px-4 py-2 text-gray-700 placeholder-gray-500"
-                      rows="1"
-                      placeholder="What's on your mind?"
-                      value={postContent}
-                      onChange={(e) => setPostContent(e.target.value)}
-                    ></textarea>
+                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <textarea
+                  className="w-full border border-gray-200 rounded-full px-4 py-2 text-gray-700 placeholder-gray-500"
+                  rows="1"
+                  placeholder="What's on your mind?"
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
+                ></textarea>
                     </div>
                     <div className="border-t border-gray-200 mt-4 pt-3">
-                    <div className="flex justify-between items-center">
-                      <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Photo
-                      </button>
-                      <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Recipe
-                      </button>
-                      <button
-                      onClick={async () => {
-                        if (postContent.trim()) {
+                <div className="flex justify-between items-center">
+                  <button className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Photo
+                  </button>
+                  <button
+                    onClick={() => setShowRecipeModal(true)}
+                    className="flex items-center text-gray-600 hover:bg-gray-100 rounded-md px-3 py-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Recipe
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (postContent.trim()) {
                         try {
                           const response = await recipeService.createRecipe({ content: postContent });
                           setPosts([{ ...response.data, likes: 0, comments: [] }, ...posts]);
@@ -241,13 +343,13 @@ const HomePage = () => {
                         } catch (error) {
                           console.error('Error creating post:', error);
                         }
-                        }
-                      }}
-                      className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                      Post
-                      </button>
-                    </div>
+                      }
+                    }}
+                    className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Post
+                  </button>
+                </div>
                     </div>
                   </div>
 
@@ -391,6 +493,145 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Recipe Creation Modal */}
+      {showRecipeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="border-b p-4 flex justify-between items-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-t-xl">
+              <h3 className="text-xl font-semibold">Create Quick Recipe</h3>
+              <button
+                onClick={() => setShowRecipeModal(false)}
+                className="text-white hover:text-gray-200 focus:outline-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleRecipeSubmit} className="p-4 space-y-4">
+              {recipeError && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                  <p className="text-red-700 text-sm">{recipeError}</p>
+                </div>
+              )}
+
+              {/* Recipe Title */}
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Recipe Title*
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={newRecipe.title}
+                  onChange={handleRecipeInputChange}
+                  required
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Delicious recipe name"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={newRecipe.category}
+                  onChange={handleRecipeInputChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value="">Select a category</option>
+                  {loadingCategories ? (
+                    <option disabled>Loading categories...</option>
+                  ) : (
+                    categories.map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description*
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={newRecipe.description}
+                  onChange={handleRecipeInputChange}
+                  rows={3}
+                  required
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Brief description of your recipe"
+                ></textarea>
+              </div>
+
+              {/* Steps */}
+              <div>
+                <label htmlFor="steps" className="block text-sm font-medium text-gray-700 mb-1">
+                  Steps*
+                </label>
+                <textarea
+                  id="steps"
+                  name="steps"
+                  value={newRecipe.steps}
+                  onChange={handleRecipeInputChange}
+                  rows={5}
+                  required
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="1. Mix ingredients
+2. Cook for 20 mins
+3. Serve hot"
+                ></textarea>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+                  Tags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  id="tags"
+                  name="tags"
+                  value={newRecipe.tags}
+                  onChange={handleRecipeInputChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="quick, easy, vegetarian"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowRecipeModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingRecipe}
+                  className={`px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-md ${submittingRecipe ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
+                >
+                  {submittingRecipe ? 'Creating...' : 'Create Recipe'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

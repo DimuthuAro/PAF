@@ -19,6 +19,7 @@ import SavedRecipesPage from './pages/SavedRecipesPage';
 import FriendsPage from './pages/FriendsPage';
 import RecipeGroupsPage from './pages/RecipeGroupsPage';
 import CategoriesPage from './pages/CategoriesPage';
+import ManageCommentsPage from './pages/ManageCommentsPage';
 
 import './App.css';
 
@@ -49,11 +50,11 @@ function AppRoutes() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/categorypage/:categoryName" element={<CategoryPage />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />
-            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />            <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/favorites" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
             <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
             <Route path="/groups" element={<ProtectedRoute element={<RecipeGroupsPage />} />} />
+            <Route path="/my-comments" element={<ProtectedRoute element={<ManageCommentsPage />} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

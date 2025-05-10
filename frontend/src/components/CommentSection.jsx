@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { interactionService } from '../services/api';
+import { interactionService, userService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+
 
 const CommentSection = ({ recipeId }) => {
   const { currentUser } = useAuth();
@@ -10,6 +11,8 @@ const CommentSection = ({ recipeId }) => {
   const [editText, setEditText] = useState('');
 
   useEffect(() => {
+    console.log('Fetching comments for recipeId:', recipeId);
+    console.log('Current user:', currentUser);
     fetchComments();
   }, [recipeId]);
   const fetchComments = async () => {
@@ -80,6 +83,54 @@ const CommentSection = ({ recipeId }) => {
       day: 'numeric',
     });
   };
+  const [userNames, setUserNames] = useState({});
+
+  // Use this function to get user name for a comment - it's now async
+  useEffect(() => {
+    if (!comments.length) return;
+
+    const fetchUserNames = async () => {
+      const newUserNames = { ...userNames };
+
+      // First collect all unique user IDs that we don't already have names for
+      const userIdsToFetch = comments
+        .filter(comment => comment.userId && !userNames[comment.userId])
+        .map(comment => comment.userId);
+
+      // Fetch names for each user ID
+      for (const userId of userIdsToFetch) {
+        try {
+          const response = await userService.getUserById(userId);
+          if (response && response.data) {
+            newUserNames[userId] = response.data.name || response.data.username || 'User';
+          }
+        } catch (error) {
+          console.error(`Error fetching user data for ID ${userId}:`, error);
+          newUserNames[userId] = 'Unknown User';
+        }
+      }
+
+      setUserNames(newUserNames);
+    };
+
+    fetchUserNames();
+  }, [comments]);
+
+  const getUserNameByComment = (comment) => {
+    if (!comment) return 'Unknown User';
+
+    // If we have a user name cached
+    if (comment.userId && userNames[comment.userId]) {
+      return userNames[comment.userId];
+    }
+
+    // If we have a user object in the comment
+    if (comment.user && (comment.user.name || comment.user.username)) {
+      return comment.user.name || comment.user.username;
+    }
+
+    return 'Unknown User';
+  }
 
   return (
     <div className="mt-8">
@@ -109,14 +160,13 @@ const CommentSection = ({ recipeId }) => {
         <p className="mb-6 text-gray-500 italic">Please log in to leave a comment.</p>
       )}
 
-      <div className="space-y-4">
-        {comments.length === 0 ? (
+      <div className="space-y-4">        {comments.length === 0 ? (
           <p className="text-gray-500">No comments yet.</p>
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between">
-                <p className="font-semibold text-gray-800">{comment.user?.name || 'Unknown User'}</p>
+                <p className="font-semibold text-gray-800">{getUserNameByComment(comment)}</p>
                 <p className="text-sm text-gray-500">{formatDate(comment.createdAt)}</p>
               </div>
 
@@ -145,9 +195,7 @@ const CommentSection = ({ recipeId }) => {
                 </div>
               ) : (
                 <p className="mt-2 text-gray-700">{comment.content}</p>
-              )}
-
-              {currentUser && currentUser.id === comment.user?.id && !editingId && (
+              )}              {currentUser && currentUser.user && currentUser.user.id === comment.userId && !editingId && (
                 <div className="mt-2 flex space-x-2 justify-end">
                   <button
                     onClick={() => handleEditClick(comment)}

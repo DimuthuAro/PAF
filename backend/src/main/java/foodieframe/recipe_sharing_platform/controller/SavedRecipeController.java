@@ -83,16 +83,20 @@ public class SavedRecipeController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    // Remove a saved recipe
+    } // Remove a saved recipe
     @DeleteMapping("/users/{userId}/recipes/{recipeId}")
-    public ResponseEntity<Void> removeSavedRecipe(
+    public ResponseEntity<?> removeSavedRecipe(
             @PathVariable Long userId,
             @PathVariable Long recipeId) {
 
-        savedRecipeService.removeSavedRecipe(userId, recipeId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            savedRecipeService.removeSavedRecipe(userId, recipeId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    "Failed to remove saved recipe: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // Count how many users have saved a recipe

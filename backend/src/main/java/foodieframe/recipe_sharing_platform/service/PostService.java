@@ -42,11 +42,16 @@ public class PostService {
         post.setTags(postDetails.getTags());
         return postRepository.save(post);
     }
-    
+
     // Delete
     public void deletePost(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
         postRepository.delete(post);
+    }
+
+    // Find by user id
+    public List<Post> getPostsByUserId(Long userId) {
+        return postRepository.findByUserID(userId);
     }
 }

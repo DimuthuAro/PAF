@@ -22,9 +22,11 @@ const Navbar = () => {
             <div className="hidden md:ml-6 md:flex md:space-x-8">
               <Link to="/" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
                 Home
-              </Link>
-              <Link to="/recipes" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
+              </Link>              <Link to="/recipes" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
                 Recipes
+              </Link>
+              <Link to="/categories" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
+                Categories
               </Link>
               {currentUser && (
                 <Link to="/create-recipe" className="inline-flex items-center px-1 pt-1 text-black hover:text-indigo-600">
@@ -34,12 +36,14 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="hidden md:ml-6 md:flex md:items-center">
-            {currentUser ? (
+          <div className="hidden md:ml-6 md:flex md:items-center">            {currentUser ? (
               <div className="flex items-center space-x-4">
                 <Link to="/profile" className="text-black hover:text-indigo-600">
                   Profile
                 </Link>
+              <Link to="/my-comments" className="text-black hover:text-indigo-600">
+                My Comments
+              </Link>
                 <button
                   onClick={logout}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
@@ -101,9 +105,11 @@ const Navbar = () => {
         <div className="pt-2 pb-3 space-y-1">
           <Link to="/" className="block pl-3 pr-4 py-2 border-l-4 border-indigo-500 text-base font-medium text-indigo-700 bg-indigo-50">
             Home
-          </Link>
-          <Link to="/recipes" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+          </Link>          <Link to="/recipes" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
             Recipes
+          </Link>
+          <Link to="/categories" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+            Categories
           </Link>
           {currentUser && (
             <Link to="/create-recipe" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
@@ -111,12 +117,14 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div className="pt-4 pb-3 border-t border-gray-200">
-          {currentUser ? (
+        <div className="pt-4 pb-3 border-t border-gray-200">          {currentUser ? (
             <div className="space-y-1">
               <Link to="/profile" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
                 Profile
               </Link>
+            <Link to="/my-comments" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+              My Comments
+            </Link>
               <button
                 onClick={logout}
                 className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"

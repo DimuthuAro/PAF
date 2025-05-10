@@ -6,13 +6,16 @@ const CategoriesPage = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [formData, setFormData] = useState({
+    const [showCreateForm, setShowCreateForm] = useState(false); const [formData, setFormData] = useState({
         name: '',
-        description: ''
+        description: '',
+        imageUrl: ''
     });
+    const [editMode, setEditMode] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState(null);
 
     const currentUser = authService.getCurrentUser();
+    // Allow any logged in user to create categories, but only admins can edit/delete
     const isAdmin = currentUser?.user?.role === 'ADMIN';
 
     useEffect(() => {
@@ -38,36 +41,72 @@ const CategoriesPage = () => {
             ...formData,
             [name]: value
         });
-    };
-
-    const handleSubmit = async (e) => {
+    }; const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!currentUser) {
-            setError("You must be logged in to create a category");
+            setError("You must be logged in to manage categories");
             return;
         }
 
         try {
-            const response = await categoryService.createCategory(formData);
+            let response;
 
-            // Update local state with new category
-            setCategories([...categories, response.data]);
+            if (editMode && editingCategoryId) {
+                // Update existing category
+                response = await categoryService.updateCategory(editingCategoryId, formData);
+
+                // Update local state
+                setCategories(categories.map(category =>
+                    category.id === editingCategoryId ? response.data : category
+                ));
+
+                setEditMode(false);
+                setEditingCategoryId(null);
+            } else {
+                // Create new category
+                response = await categoryService.createCategory(formData);
+
+                // Update local state with new category
+                setCategories([...categories, response.data]);
+            }
 
             // Reset form
             setFormData({
                 name: '',
-                description: ''
+                description: '',
+                imageUrl: ''
             });
             setShowCreateForm(false);
         } catch (error) {
-            console.error('Error creating category:', error);
-            setError('Failed to create category. Please try again later.');
+            console.error('Error managing category:', error);
+            setError(editMode
+                ? 'Failed to update category. Please try again later.'
+                : 'Failed to create category. Please try again later.'
+            );
         }
+    }; const handleEdit = (category) => {
+        if (!currentUser || !isAdmin) return;
+
+        // Set form data with category values
+        setFormData({
+            name: category.name,
+            description: category.description || '',
+            imageUrl: category.imageUrl || ''
+        });
+
+        // Enable edit mode and store category id
+        setEditMode(true);
+        setEditingCategoryId(category.id);
+        setShowCreateForm(true);
     };
 
     const handleDelete = async (id) => {
         if (!currentUser || !isAdmin) return;
+
+        if (!window.confirm('Are you sure you want to delete this category?')) {
+            return;
+        }
 
         try {
             await categoryService.deleteCategory(id);
@@ -77,6 +116,7 @@ const CategoriesPage = () => {
             setCategories(updatedCategories);
         } catch (error) {
             console.error('Error deleting category:', error);
+            setError('Failed to delete category. Please try again.');
         }
     };
 
@@ -95,12 +135,23 @@ const CategoriesPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
+            <div className="max-w-6xl mx-auto">                <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-800">Recipe Categories</h1>
-                    {isAdmin && (
+                {currentUser && (
                         <button
-                            onClick={() => setShowCreateForm(!showCreateForm)}
+                        onClick={() => {
+                            if (showCreateForm && editMode) {
+                                // If cancelling while editing, reset the form
+                                setEditMode(false);
+                                setEditingCategoryId(null);
+                                setFormData({
+                                    name: '',
+                                    description: '',
+                                    imageUrl: ''
+                                });
+                            }
+                            setShowCreateForm(!showCreateForm);
+                        }}
                             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >
                             {showCreateForm ? 'Cancel' : 'Create Category'}
@@ -112,12 +163,12 @@ const CategoriesPage = () => {
                     <div className="bg-red-100 p-4 rounded-md text-red-700 mb-4">
                         {error}
                     </div>
-                )}
-
-                {/* Create Category Form */}
-                {showCreateForm && isAdmin && (
+                )}                {/* Create/Edit Category Form */}
+                {showCreateForm && currentUser && (
                     <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-                        <h2 className="text-xl font-semibold mb-4">Create New Category</h2>
+                        <h2 className="text-xl font-semibold mb-4">
+                            {editMode ? 'Edit Category' : 'Create New Category'}
+                        </h2>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="block text-gray-700 mb-1">Category Name</label>
@@ -129,9 +180,7 @@ const CategoriesPage = () => {
                                     className="w-full p-2 border rounded-md"
                                     required
                                 />
-                            </div>
-
-                            <div className="mb-4">
+                            </div>                            <div className="mb-4">
                                 <label className="block text-gray-700 mb-1">Description</label>
                                 <textarea
                                     name="description"
@@ -142,11 +191,36 @@ const CategoriesPage = () => {
                                 ></textarea>
                             </div>
 
+                            <div className="mb-4">
+                                <label className="block text-gray-700 mb-1">Image URL (optional)</label>
+                                <input
+                                    type="url"
+                                    name="imageUrl"
+                                    value={formData.imageUrl}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded-md"
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                                {formData.imageUrl && (
+                                    <div className="mt-2 max-h-32 overflow-hidden rounded-md">
+                                        <img
+                                            src={formData.imageUrl}
+                                            alt="Category preview"
+                                            className="w-full h-32 object-cover"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = 'https://via.placeholder.com/300x100?text=Invalid+Image+URL';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
                             <button
                                 type="submit"
                                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                             >
-                                Create Category
+                                {editMode ? 'Update Category' : 'Create Category'}
                             </button>
                         </form>
                     </div>
@@ -174,18 +248,25 @@ const CategoriesPage = () => {
                                         <p className="text-gray-600 text-sm mt-1 mb-3">
                                             {category.description}
                                         </p>
-                                    )}
-                                    <div className="flex justify-between mt-auto">
+                                    )}                                    <div className="flex justify-between mt-auto">
                                         <Link to={`/categories/${category.id}`} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                             Browse Recipes
                                         </Link>
                                         {isAdmin && (
-                                            <button
-                                                onClick={() => handleDelete(category.id)}
-                                                className="text-red-600 hover:text-red-800 text-sm"
-                                            >
-                                                Delete
-                                            </button>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => handleEdit(category)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(category.id)}
+                                                    className="text-red-600 hover:text-red-800 text-sm"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

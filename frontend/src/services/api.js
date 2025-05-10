@@ -52,6 +52,31 @@ export const recipeService = {
       throw error;
     }
   },
+
+  createRecipeWithFiles: async (formData) => {
+    try {
+      // Use a different axios instance for file uploads with multipart/form-data
+      const fileUploadInstance = axios.create({
+        baseURL: API_URL,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true
+      });
+
+      // Set auth header if available
+      const user = authService.getCurrentUser();
+      if (user && user.token) {
+        fileUploadInstance.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+      }
+
+      const response = await fileUploadInstance.post('/posts/upload', formData);
+      return response;
+    } catch (error) {
+      console.error('Error creating recipe with files:', error);
+      throw error;
+    }
+  },
   getRecipeById: async (id) => {
     try {
       console.log(`Fetching recipe with ID: ${id}`);
@@ -85,10 +110,13 @@ axiosInstance.interceptors.response.use(
 
     // Handle specific database constraint violations
     if (error.response && error.response.status === 500) {
-      if (error.response.data && error.response.data.includes('UK_6DOTKOTT2KJSP8VW4D0M25FB7')) {
+      // Check if error.response.data is a string before using includes
+      const errorMessage = typeof error.response.data === 'string' ? error.response.data : '';
+
+      if (errorMessage.includes('UK_6DOTKOTT2KJSP8VW4D0M25FB7')) {
         return Promise.reject(new Error('Email address already exists. Please use a different email.'));
       }
-      if (error.response.data && error.response.data.includes('UK_R43AF9AP4EDM43MMTQ01ODDJ6')) {
+      if (errorMessage.includes('UK_R43AF9AP4EDM43MMTQ01ODDJ6')) {
         return Promise.reject(new Error('Username already exists. Please choose a different username.'));
       }
     }
@@ -208,6 +236,15 @@ export const interactionService = {
     axiosInstance.get(`/interactions/recipes/${recipeId}/type/COMMENT`),
   getUserFavorites: (userId) => 
     axiosInstance.get(`/interactions/users/${userId}/type/FAVORITE`),
+  getUserInteractions: async (userId, type) => {
+    try {
+      const response = await axiosInstance.get(`/interactions/users/${userId}/type/${type}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching user interactions for type ${type}:`, error);
+      throw error?.response?.data || error.message || `Failed to fetch user ${type} interactions`;
+    }
+  },
   getInteractionCount: (recipeId, type) => 
     axiosInstance.get(`/interactions/recipes/${recipeId}/type/${type}/count`),
   updateComment: (interactionId, comment) => 
@@ -283,7 +320,6 @@ export const savedRecipeService = {
       throw error?.response?.data || error.message || 'Failed to update note';
     }
   },
-
   // Remove a saved recipe
   removeSavedRecipe: async (userId, recipeId) => {
     try {
@@ -291,7 +327,21 @@ export const savedRecipeService = {
       return response;
     } catch (error) {
       console.error(`Error removing saved recipe ${recipeId} for user ${userId}:`, error);
-      throw error?.response?.data || error.message || 'Failed to remove saved recipe';
+      // Get proper error message based on the type of error response
+      let errorMessage = 'Failed to remove saved recipe';
+
+      if (error.response) {
+        // Handle different types of response data
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw errorMessage;
     }
   },
 

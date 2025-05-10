@@ -4,6 +4,7 @@ import foodieframe.recipe_sharing_platform.model.SavedRecipe;
 import foodieframe.recipe_sharing_platform.repository.SavedRecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,9 +57,9 @@ public class SavedRecipeService {
         } else {
             throw new RuntimeException("Saved recipe not found for user: " + userId + " and post: " + postId);
         }
-    }
+    } // Remove a recipe from a user's saved collection
 
-    // Remove a recipe from a user's saved collection
+    @Transactional
     public void removeSavedRecipe(Long userId, Long postId) {
         savedRecipeRepository.deleteByUserIdAndPostId(userId, postId);
     }
