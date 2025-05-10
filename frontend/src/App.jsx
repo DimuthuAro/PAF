@@ -14,6 +14,7 @@ import CategoryPage from './pages/CategoryPage';
 import Events from './pages/Events';
 import EventDetailPage from './pages/EventDetailPage';
 import CreateEventPage from './pages/CreateEventPage';
+import EditEventPage from './pages/EditEventPage';
 // import CreatePostPage from './pages/CreatePostPage';
 import SavedRecipesPage from './pages/SavedRecipesPage';
 import FriendsPage from './pages/FriendsPage';
@@ -50,7 +51,9 @@ function AppRoutes() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/categorypage/:categoryName" element={<CategoryPage />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/events/create" element={<ProtectedRoute element={<CreateEventPage />} />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/edit-event/:id" element={<ProtectedRoute element={<EditEventPage />} />} />
             <Route path="/favorites" element={<ProtectedRoute element={<SavedRecipesPage />} />} />
             <Route path="/friends" element={<ProtectedRoute element={<FriendsPage />} />} />
             <Route path="/groups" element={<ProtectedRoute element={<RecipeGroupsPage />} />} />

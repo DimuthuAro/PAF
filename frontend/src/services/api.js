@@ -200,7 +200,6 @@ export const eventService = {
       throw error?.response?.data || error.message || 'Failed to update event';
     }
   },
-
   deleteEvent: async (id) => {
     try {
       const response = await axiosInstance.delete(`/events/${id}`);
@@ -210,8 +209,17 @@ export const eventService = {
       throw error?.response?.data || error.message || 'Failed to delete event';
     }
   },
-
-  getUserEvents: async (userId) => {
+  
+  searchEvents: async (searchTerm) => {
+    try {
+      const response = await axiosInstance.get(`/events/search?term=${encodeURIComponent(searchTerm)}`);
+      return response;
+    } catch (error) {
+      console.error(`Error searching events with term "${searchTerm}":`, error);
+      throw error?.response?.data || error.message || 'Failed to search events';
+    }
+  },
+    getUserEvents: async (userId) => {
     try {
       const response = await axiosInstance.get(`/events/user/${userId}`);
       return response;

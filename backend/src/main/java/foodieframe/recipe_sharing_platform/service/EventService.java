@@ -55,6 +55,19 @@ public class EventService {
     public Optional<Event> getEventById(Long id) {
         return eventRepository.findById(id);
     }
+    
+    // Search events by a search term across multiple fields
+    public List<Event> searchEvents(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllEvents();
+        }
+        return eventRepository.searchEvents(searchTerm);
+    }
+    
+    // Get events by user ID
+    public List<Event> getEventsByUserId(Long userId) {
+        return eventRepository.findByUserId(userId);
+    }
 
     // Update
     public Event updateEvent(Long id, Event eventDetails) {

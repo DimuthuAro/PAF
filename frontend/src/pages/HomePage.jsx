@@ -356,8 +356,8 @@ const HomePage = () => {
                   {/* Posts Feed */}
             <div className="space-y-6">
               {posts.map((post) => (
-                <div key={post.id} className="bg-white rounded-lg shadow">
-                  <div className="p-4">
+                <div key={post.id} className="bg-white rounded-lg shadow">test
+                  <div className="p-4">test
                     <div className="flex items-center space-x-2">
                       <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -418,7 +418,7 @@ const HomePage = () => {
                         <Link to={`/recipes/${recipe.id}`} key={recipe.id} className="block hover:bg-gray-50 rounded-lg p-2 transition-colors">
                           <div className="h-32 bg-gray-200 rounded-lg mb-2 overflow-hidden">
                             {recipe.image && (
-                              <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />
+                              <img alt={recipe.title} className="w-full h-64 object-cover rounded-lg shadow-md" src={recipe.image}></img>
                             )}
                           </div>
                           <h3 className="font-medium text-gray-900 truncate">{recipe.title}</h3>

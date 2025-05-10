@@ -115,4 +115,18 @@ public class EventController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    
+    // Search events
+    @GetMapping("/search")
+    public ResponseEntity<List<Event>> searchEvents(@RequestParam String term) {
+        List<Event> events = eventService.searchEvents(term);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+    
+    // Get events by user ID
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Event>> getEventsByUserId(@PathVariable Long userId) {
+        List<Event> events = eventService.getEventsByUserId(userId);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
 }

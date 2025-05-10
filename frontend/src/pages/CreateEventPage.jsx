@@ -106,7 +106,7 @@ const CreateEventPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12">
       <div className="max-w-7xl mx-0 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
+        <div className="max-w-3xl mx-auto">
           <div className="overflow-hidden shadow-xl rounded-lg border border-indigo-100">
             <div className="relative">
               <div className="absolute inset-0 h-24 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
